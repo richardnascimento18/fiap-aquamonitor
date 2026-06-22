@@ -1,0 +1,104 @@
+# =============================================================
+# AquaMonitor API — 05: Relatórios de Impacto Hídrico
+# =============================================================
+# Pré-requisito: admin_token preenchido em .env.json
+# Gerar relatório requer role Admin
+# O relatório agrega automaticamente dados de leituras e alertas
+# do período informado (ano + mês)
+# =============================================================
+
+### Gerar relatório — mês atual (Admin)
+# Agrega consumo, vazamentos detectados/resolvidos e calcula
+# percentual de redução vs período anterior
+# @name generate_report
+POST {{base_url}}/api/WaterImpactReports/generate
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "year": 2026,
+  "month": 5,
+  "mitigationPlan": "Implementar válvulas de controle automático nos pontos críticos identificados. Substituir tubulações com mais de 15 anos no Bloco A. Instalar sensores de pressão diferencial nos ramais principais. Realizar auditoria de consumo trimestral com equipe de manutenção. Treinar funcionários para identificação visual de vazamentos."
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Gerar relatório — mês anterior
+POST {{base_url}}/api/WaterImpactReports/generate
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "year": 2026,
+  "month": 4,
+  "mitigationPlan": "Monitoramento contínuo dos sensores instalados. Verificação semanal dos registros de pressão. Substituição de vedações em pontos de alto risco."
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Gerar relatório — mês com mais dados de teste
+POST {{base_url}}/api/WaterImpactReports/generate
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "year": 2026,
+  "month": 6,
+  "mitigationPlan": "Revisão completa da infraestrutura hídrica. Implantação de sistema SCADA para monitoramento em tempo real. Redução meta de 15% no consumo até o final do trimestre."
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar relatórios — paginado
+GET {{base_url}}/api/WaterImpactReports?page=1&pageSize=10
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar relatórios — usuário comum (vê apenas os seus)
+GET {{base_url}}/api/WaterImpactReports?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Buscar relatório por ID
+GET {{base_url}}/api/WaterImpactReports/{{report_id}}
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Relatório com ID inválido (espera 404)
+GET {{base_url}}/api/WaterImpactReports/99999
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Gerar relatório com dados inválidos (espera 400)
+POST {{base_url}}/api/WaterImpactReports/generate
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "year": 1800,
+  "month": 13,
+  "mitigationPlan": ""
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Gerar relatório sem ser Admin (espera 403)
+POST {{base_url}}/api/WaterImpactReports/generate
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "year": 2026,
+  "month": 5,
+  "mitigationPlan": "Tentativa de acesso não autorizado."
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Deletar relatório (Admin only) — USE COM CUIDADO
+# DELETE {{base_url}}/api/WaterImpactReports/{{report_id}}
+# Authorization: Bearer {{admin_token}}

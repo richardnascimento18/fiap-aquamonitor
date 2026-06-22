@@ -1,0 +1,114 @@
+# =============================================================
+# AquaMonitor API — 02: Sensores de Água
+# =============================================================
+# Pré-requisito: admin_token preenchido em .env.json
+# Após "Criar sensor", atualize sensor_id no .env.json
+# =============================================================
+
+### Listar sensores — paginado (página 1, 10 por página)
+GET {{base_url}}/api/WaterSensors?page=1&pageSize=10
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar sensores — página 2
+GET {{base_url}}/api/WaterSensors?page=2&pageSize=5
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Criar sensor — limiar normal (300 L/h)
+# @name create_sensor
+POST {{base_url}}/api/WaterSensors
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "name": "Sensor Principal",
+  "location": "Reservatório Central - Bloco A",
+  "alertThresholdLitersPerHour": 300.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Criar sensor — segundo sensor (limiar baixo para testar alertas)
+# @name create_sensor_2
+POST {{base_url}}/api/WaterSensors
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "name": "Sensor Secundário",
+  "location": "Caixa d'água - Bloco B",
+  "alertThresholdLitersPerHour": 100.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Buscar sensor por ID
+GET {{base_url}}/api/WaterSensors/{{sensor_id}}
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Atualizar sensor — nome e limiar
+PUT {{base_url}}/api/WaterSensors/{{sensor_id}}
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "name": "Sensor Principal Atualizado",
+  "alertThresholdLitersPerHour": 400.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Desativar sensor
+PUT {{base_url}}/api/WaterSensors/{{sensor_id}}
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "isActive": false
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Reativar sensor
+PUT {{base_url}}/api/WaterSensors/{{sensor_id}}
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "isActive": true
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Buscar sensor inexistente (espera 404)
+GET {{base_url}}/api/WaterSensors/99999
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Sem token (espera 401)
+GET {{base_url}}/api/WaterSensors
+
+### ─────────────────────────────────────────────────────────
+
+### Criar sensor com dados inválidos (espera 400)
+POST {{base_url}}/api/WaterSensors
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "name": "",
+  "location": "",
+  "alertThresholdLitersPerHour": -50
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Deletar sensor (Admin only) — USE COM CUIDADO
+# DELETE {{base_url}}/api/WaterSensors/{{sensor_id}}
+# Authorization: Bearer {{admin_token}}

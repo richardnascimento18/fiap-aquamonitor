@@ -1,0 +1,80 @@
+# =============================================================
+# AquaMonitor API — 01: Autenticação
+# =============================================================
+# Instruções:
+#   1. Selecione o ambiente "dev" (dotnet run) ou "docker"
+#   2. Execute "Login admin" primeiro para obter o admin_token
+#   3. Copie o valor de "token" da resposta e coloque em .env.json
+# =============================================================
+
+@base_url = {{base_url}}
+
+### Registrar novo usuário
+# @name register
+POST {{base_url}}/api/Auth/register
+Content-Type: application/json
+
+{
+  "name": "Teste ESG",
+  "email": "teste@aquamonitor.com",
+  "password": "Senha@123"
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Login — Admin (copie o token para admin_token no .env.json)
+# @name login_admin
+POST {{base_url}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@aquamonitor.com",
+  "password": "Admin@123"
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Login — Usuário comum (copie o token para token no .env.json)
+# @name login_user
+POST {{base_url}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "teste@aquamonitor.com",
+  "password": "Senha@123"
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Login — Credenciais inválidas (espera 401)
+POST {{base_url}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "ninguem@aquamonitor.com",
+  "password": "SenhaErrada@1"
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar e-mail duplicado (espera 409)
+POST {{base_url}}/api/Auth/register
+Content-Type: application/json
+
+{
+  "name": "Duplicado",
+  "email": "admin@aquamonitor.com",
+  "password": "Senha@123"
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registro com senha fraca (espera 400)
+POST {{base_url}}/api/Auth/register
+Content-Type: application/json
+
+{
+  "name": "Fraco",
+  "email": "fraco@aquamonitor.com",
+  "password": "123"
+}

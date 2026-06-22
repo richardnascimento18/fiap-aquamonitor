@@ -1,0 +1,270 @@
+{
+  "info": {
+    "_postman_id": "aquamonitor-v1",
+    "name": "AquaMonitor API",
+    "description": "Coleção de testes para a API AquaMonitor — ESG Tema 7: Acesso à água e preservação de recursos naturais",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5178", "type": "string" },
+    { "key": "token",   "value": "",                      "type": "string" },
+    { "key": "adminToken", "value": "",                   "type": "string" },
+    { "key": "sensorId",   "value": "1",                  "type": "string" },
+    { "key": "readingId",  "value": "1",                  "type": "string" },
+    { "key": "alertId",    "value": "1",                  "type": "string" },
+    { "key": "reportId",   "value": "1",                  "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01 – Autenticação",
+      "item": [
+        {
+          "name": "Registrar novo usuário",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.collectionVariables.set('token', j.token);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/Auth/register", "host": ["{{baseUrl}}"], "path": ["api","Auth","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Teste ESG\",\n  \"email\": \"teste@aquamonitor.com\",\n  \"password\": \"Senha@123\"\n}" }
+          }
+        },
+        {
+          "name": "Login admin",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.collectionVariables.set('adminToken', j.token);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/Auth/login", "host": ["{{baseUrl}}"], "path": ["api","Auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@aquamonitor.com\",\n  \"password\": \"Admin@123\"\n}" }
+          }
+        },
+        {
+          "name": "Login usuário comum",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.collectionVariables.set('token', j.token);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/Auth/login", "host": ["{{baseUrl}}"], "path": ["api","Auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"teste@aquamonitor.com\",\n  \"password\": \"Senha@123\"\n}" }
+          }
+        },
+        {
+          "name": "Login credenciais inválidas (401)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/Auth/login", "host": ["{{baseUrl}}"], "path": ["api","Auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"naoexiste@x.com\",\n  \"password\": \"Errada@1\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 – Sensores",
+      "item": [
+        {
+          "name": "Listar sensores (paginado)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Tem paginação', () => { const j = pm.response.json(); pm.expect(j).to.have.property('totalCount'); pm.expect(j).to.have.property('totalPages'); });"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterSensors?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api","WaterSensors"], "query": [{"key":"page","value":"1"},{"key":"pageSize","value":"10"}] }
+          }
+        },
+        {
+          "name": "Criar sensor",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.collectionVariables.set('sensorId', j.id.toString());"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterSensors", "host": ["{{baseUrl}}"], "path": ["api","WaterSensors"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Sensor Principal\",\n  \"location\": \"Reservatório Central - Bloco A\",\n  \"alertThresholdLitersPerHour\": 300.0\n}" }
+          }
+        },
+        {
+          "name": "Buscar sensor por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterSensors/{{sensorId}}", "host": ["{{baseUrl}}"], "path": ["api","WaterSensors","{{sensorId}}"] }
+          }
+        },
+        {
+          "name": "Atualizar sensor",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterSensors/{{sensorId}}", "host": ["{{baseUrl}}"], "path": ["api","WaterSensors","{{sensorId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Sensor Principal Atualizado\",\n  \"alertThresholdLitersPerHour\": 400.0\n}" }
+          }
+        },
+        {
+          "name": "Sensor ID inválido (404)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterSensors/99999", "host": ["{{baseUrl}}"], "path": ["api","WaterSensors","99999"] }
+          }
+        },
+        {
+          "name": "Sem token (401)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/WaterSensors", "host": ["{{baseUrl}}"], "path": ["api","WaterSensors"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 – Leituras",
+      "item": [
+        {
+          "name": "Registrar leitura normal",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.collectionVariables.set('readingId', j.readingId.toString()); pm.test('Sem alerta', () => pm.expect(j.alertGenerated).to.be.false);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterReadings", "host": ["{{baseUrl}}"], "path": ["api","WaterReadings"] },
+            "body": { "mode": "raw", "raw": "{\n  \"sensorId\": {{sensorId}},\n  \"litersConsumed\": 45.5,\n  \"flowRateLitersPerHour\": 150.0\n}" }
+          }
+        },
+        {
+          "name": "Registrar leitura com ANOMALIA (gera alerta)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.test('Alerta gerado automaticamente', () => pm.expect(j.alertGenerated).to.be.true); pm.collectionVariables.set('alertId', j.alertId.toString());"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterReadings", "host": ["{{baseUrl}}"], "path": ["api","WaterReadings"] },
+            "body": { "mode": "raw", "raw": "{\n  \"sensorId\": {{sensorId}},\n  \"litersConsumed\": 900.0,\n  \"flowRateLitersPerHour\": 1200.0\n}" }
+          }
+        },
+        {
+          "name": "Listar leituras (paginado)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Paginação presente', () => { const j = pm.response.json(); pm.expect(j.totalCount).to.be.a('number'); });"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterReadings?page=1&pageSize=10&sensorId={{sensorId}}", "host": ["{{baseUrl}}"], "path": ["api","WaterReadings"], "query": [{"key":"page","value":"1"},{"key":"pageSize","value":"10"},{"key":"sensorId","value":"{{sensorId}}"}] }
+          }
+        },
+        {
+          "name": "Listar apenas anomalias",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterReadings?anomaliesOnly=true", "host": ["{{baseUrl}}"], "path": ["api","WaterReadings"], "query": [{"key":"anomaliesOnly","value":"true"}] }
+          }
+        },
+        {
+          "name": "Resumo de consumo por sensor",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterReadings/summary", "host": ["{{baseUrl}}"], "path": ["api","WaterReadings","summary"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 – Alertas de Vazamento",
+      "item": [
+        {
+          "name": "Listar alertas (paginado)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/LeakAlerts?page=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api","LeakAlerts"], "query": [{"key":"page","value":"1"},{"key":"pageSize","value":"10"}] }
+          }
+        },
+        {
+          "name": "Buscar alerta por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/LeakAlerts/{{alertId}}", "host": ["{{baseUrl}}"], "path": ["api","LeakAlerts","{{alertId}}"] }
+          }
+        },
+        {
+          "name": "Atualizar status → Acknowledged",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Status atualizado', () => pm.expect(pm.response.json().status).to.equal('Acknowledged'));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/LeakAlerts/{{alertId}}/status", "host": ["{{baseUrl}}"], "path": ["api","LeakAlerts","{{alertId}}","status"] },
+            "body": { "mode": "raw", "raw": "{ \"status\": 1 }" }
+          }
+        },
+        {
+          "name": "Atualizar status → Resolved",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Resolvido', () => pm.expect(pm.response.json().status).to.equal('Resolved'));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/LeakAlerts/{{alertId}}/status", "host": ["{{baseUrl}}"], "path": ["api","LeakAlerts","{{alertId}}","status"] },
+            "body": { "mode": "raw", "raw": "{ \"status\": 2 }" }
+          }
+        },
+        {
+          "name": "Estatísticas de alertas (Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Tem totalAlerts', () => pm.expect(pm.response.json()).to.have.property('totalAlerts'));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/LeakAlerts/stats", "host": ["{{baseUrl}}"], "path": ["api","LeakAlerts","stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 – Relatórios de Impacto Hídrico",
+      "item": [
+        {
+          "name": "Gerar relatório (Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.collectionVariables.set('reportId', j.id.toString()); pm.test('Tem título', () => pm.expect(j.title).to.include('Relatorio'));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" },{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterImpactReports/generate", "host": ["{{baseUrl}}"], "path": ["api","WaterImpactReports","generate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"year\": 2026,\n  \"month\": 5,\n  \"mitigationPlan\": \"Implementar válvulas de controle automático nos pontos críticos. Substituir tubulações antigas no Bloco A. Instalar sensores de pressão diferencial nos ramais principais. Realizar auditoria de consumo trimestral.\"\n}" }
+          }
+        },
+        {
+          "name": "Listar relatórios (paginado)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterImpactReports?page=1&pageSize=5", "host": ["{{baseUrl}}"], "path": ["api","WaterImpactReports"], "query": [{"key":"page","value":"1"},{"key":"pageSize","value":"5"}] }
+          }
+        },
+        {
+          "name": "Buscar relatório por ID",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterImpactReports/{{reportId}}", "host": ["{{baseUrl}}"], "path": ["api","WaterImpactReports","{{reportId}}"] }
+          }
+        },
+        {
+          "name": "Relatório ID inválido (404)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/WaterImpactReports/99999", "host": ["{{baseUrl}}"], "path": ["api","WaterImpactReports","99999"] }
+          }
+        }
+      ]
+    }
+  ]
+}

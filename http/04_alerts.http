@@ -1,0 +1,115 @@
+# =============================================================
+# AquaMonitor API — 04: Alertas de Vazamento
+# =============================================================
+# Pré-requisito: admin_token e alert_id preenchidos em .env.json
+# Os alertas são gerados automaticamente ao registrar leituras
+# com vazão acima do limiar do sensor (arquivo 03_readings.http)
+# =============================================================
+
+### Listar alertas — todos (paginado)
+GET {{base_url}}/api/LeakAlerts?page=1&pageSize=10
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar alertas — apenas alertas abertos (Status=0)
+GET {{base_url}}/api/LeakAlerts?status=0&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar alertas — apenas reconhecidos (Status=1)
+GET {{base_url}}/api/LeakAlerts?status=1&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar alertas — apenas resolvidos (Status=2)
+GET {{base_url}}/api/LeakAlerts?status=2&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar alertas — apenas críticos (Severity=4)
+GET {{base_url}}/api/LeakAlerts?severity=4&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar alertas — apenas High (Severity=3)
+GET {{base_url}}/api/LeakAlerts?severity=3&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar alertas — filtrar por sensor
+GET {{base_url}}/api/LeakAlerts?sensorId={{sensor_id}}&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Buscar alerta por ID
+GET {{base_url}}/api/LeakAlerts/{{alert_id}}
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Atualizar status → Acknowledged (reconhecido) = 1
+PATCH {{base_url}}/api/LeakAlerts/{{alert_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": 1
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Atualizar status → Resolved (resolvido) = 2
+### (também preenche o campo resolvedAt automaticamente)
+PATCH {{base_url}}/api/LeakAlerts/{{alert_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": 2
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Reabrir alerta → Open = 0
+PATCH {{base_url}}/api/LeakAlerts/{{alert_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": 0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Estatísticas consolidadas de alertas (Admin only)
+GET {{base_url}}/api/LeakAlerts/stats
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Alerta com ID inválido (espera 404)
+GET {{base_url}}/api/LeakAlerts/99999
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Status inválido (espera 400)
+PATCH {{base_url}}/api/LeakAlerts/{{alert_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": 99
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Sem token (espera 401)
+GET {{base_url}}/api/LeakAlerts

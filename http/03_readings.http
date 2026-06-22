@@ -1,0 +1,157 @@
+# =============================================================
+# AquaMonitor API — 03: Leituras de Consumo
+# =============================================================
+# Pré-requisito: admin_token e sensor_id preenchidos em .env.json
+# Após "Registrar leitura com anomalia", anote o alertId retornado
+# =============================================================
+
+### Listar leituras — todas (paginado)
+GET {{base_url}}/api/WaterReadings?page=1&pageSize=10
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar leituras — filtrar por sensor
+GET {{base_url}}/api/WaterReadings?sensorId={{sensor_id}}&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar leituras — apenas anomalias
+GET {{base_url}}/api/WaterReadings?anomaliesOnly=true&page=1&pageSize=20
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Listar leituras — filtrar por período
+GET {{base_url}}/api/WaterReadings?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar leitura NORMAL (vazão abaixo do limiar — sem alerta)
+# @name reading_normal
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": {{sensor_id}},
+  "litersConsumed": 45.5,
+  "flowRateLitersPerHour": 150.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar leitura com DATA específica
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": {{sensor_id}},
+  "litersConsumed": 80.0,
+  "flowRateLitersPerHour": 200.0,
+  "recordedAt": "2026-05-15T08:30:00Z"
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar leitura com ANOMALIA — LOW (vazão 1.2x o limiar)
+# Limiar padrão: 300 L/h → 360 L/h = LOW
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": {{sensor_id}},
+  "litersConsumed": 120.0,
+  "flowRateLitersPerHour": 360.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar leitura com ANOMALIA — MEDIUM (1.5x o limiar)
+# Limiar: 300 → 480 L/h = MEDIUM
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": {{sensor_id}},
+  "litersConsumed": 200.0,
+  "flowRateLitersPerHour": 480.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar leitura com ANOMALIA — HIGH (2x o limiar)
+# Limiar: 300 → 650 L/h = HIGH
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": {{sensor_id}},
+  "litersConsumed": 350.0,
+  "flowRateLitersPerHour": 650.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Registrar leitura com ANOMALIA — CRITICAL (3x+ o limiar)
+# Limiar: 300 → 1200 L/h = CRITICAL → guarde o alertId retornado!
+# @name reading_critical
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": {{sensor_id}},
+  "litersConsumed": 900.0,
+  "flowRateLitersPerHour": 1200.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Resumo de consumo — todos os sensores
+GET {{base_url}}/api/WaterReadings/summary
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Resumo de consumo — sensor específico
+GET {{base_url}}/api/WaterReadings/summary?sensorId={{sensor_id}}
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Resumo de consumo — com filtro de período
+GET {{base_url}}/api/WaterReadings/summary?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z
+Authorization: Bearer {{admin_token}}
+
+### ─────────────────────────────────────────────────────────
+
+### Leitura com sensor inexistente (espera 404)
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": 99999,
+  "litersConsumed": 10.0,
+  "flowRateLitersPerHour": 50.0
+}
+
+### ─────────────────────────────────────────────────────────
+
+### Leitura com dados inválidos (espera 400)
+POST {{base_url}}/api/WaterReadings
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "sensorId": 0,
+  "litersConsumed": -1.0,
+  "flowRateLitersPerHour": -10.0
+}
