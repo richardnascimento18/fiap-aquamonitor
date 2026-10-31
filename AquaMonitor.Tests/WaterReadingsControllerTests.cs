@@ -15,12 +15,12 @@ public class WaterReadingsControllerTests : IClassFixture<AquaMonitorWebApplicat
     private async Task<(string token, int sensorId)> SetupAsync()
     {
         var email = $"u{Guid.NewGuid():N}@test.com";
-        await _client.PostAsJsonAsync("/api/Auth/register", new{name="T",email,password="Senha@123"});
-        var r = await _client.PostAsJsonAsync("/api/Auth/login", new{email,password="Senha@123"});
+        await _client.PostAsJsonAsync("/api/Auth/register", new { name = "T", email, password = "Senha@123" });
+        var r = await _client.PostAsJsonAsync("/api/Auth/login", new { email, password = "Senha@123" });
         var token = (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString()!;
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var sr = await _client.PostAsJsonAsync("/api/WaterSensors",
-            new{name="S",location="L",alertThresholdLitersPerHour=200.0});
+            new { name = "S", location = "L", alertThresholdLitersPerHour = 200.0 });
         var sid = (await sr.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
         return (token, sid);
     }
@@ -38,7 +38,7 @@ public class WaterReadingsControllerTests : IClassFixture<AquaMonitorWebApplicat
     {
         var (_, sid) = await SetupAsync();
         var response = await _client.PostAsJsonAsync("/api/WaterReadings",
-            new{sensorId=sid,litersConsumed=50.0,flowRateLitersPerHour=100.0});
+            new { sensorId = sid, litersConsumed = 50.0, flowRateLitersPerHour = 100.0 });
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
@@ -47,7 +47,7 @@ public class WaterReadingsControllerTests : IClassFixture<AquaMonitorWebApplicat
     {
         var (_, sid) = await SetupAsync();
         var response = await _client.PostAsJsonAsync("/api/WaterReadings",
-            new{sensorId=sid,litersConsumed=80.0,flowRateLitersPerHour=500.0});
+            new { sensorId = sid, litersConsumed = 80.0, flowRateLitersPerHour = 500.0 });
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var json = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(json.GetProperty("alertGenerated").GetBoolean());

@@ -35,7 +35,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/Auth/login", "host": ["{{baseUrl}}"], "path": ["api","Auth","login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@aquamonitor.com\",\n  \"password\": \"Admin@123\"\n}" }
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}" }
           }
         },
         {

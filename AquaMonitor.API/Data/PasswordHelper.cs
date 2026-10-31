@@ -8,9 +8,9 @@ namespace AquaMonitor.API.Data;
 /// </summary>
 public static class PasswordHelper
 {
-    private const int Iterations = 100_000;
-    private const int SaltBytes   = 16;
-    private const int HashBytes    = 32;
+    private const int Iterations = 600_000;
+    private const int SaltBytes = 16;
+    private const int HashBytes = 32;
 
     public static string HashPassword(string password)
     {
@@ -23,15 +23,18 @@ public static class PasswordHelper
     {
         try
         {
+            if (string.IsNullOrEmpty(stored) || stored.Length > 256) return false;
             var parts = stored.Split('$');
             if (parts.Length != 4 || parts[0] != "v1") return false;
-            var iterations = int.Parse(parts[1]);
+            if (!int.TryParse(parts[1], out var iterations) || iterations < 10_000 || iterations > 2_000_000) return false;
             var salt = Convert.FromBase64String(parts[2]);
             var expected = Convert.FromBase64String(parts[3]);
+            if (salt.Length != SaltBytes || expected.Length != HashBytes) return false;
             var actual = Pbkdf2(password, salt, iterations);
             return CryptographicOperations.FixedTimeEquals(actual, expected);
         }
-        catch { return false; }
+        catch (FormatException) { return false; }
+        catch (ArgumentException) { return false; }
     }
 
     private static byte[] Pbkdf2(string password, byte[] salt, int iterations = Iterations)
