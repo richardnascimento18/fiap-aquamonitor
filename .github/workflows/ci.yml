@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [staging, main]
+  push:
+    branches: [staging, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Restore locked dependencies
+        run: dotnet restore AquaMonitor.sln --locked-mode
+      - name: Compile and analyze
+        run: dotnet build AquaMonitor.sln --configuration Release --no-restore --warnaserror
+      - name: Verify formatting and analyzer fixes
+        run: dotnet format AquaMonitor.sln --verify-no-changes --no-restore --severity warn
+
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - run: dotnet restore AquaMonitor.sln --locked-mode
+      - run: dotnet build AquaMonitor.sln --configuration Release --no-restore --warnaserror
+      - name: HTTP, security, and SQLite regressions
+        run: dotnet test AquaMonitor.sln --configuration Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+
+  docker-smoke:
+    name: docker-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build production image
+        run: docker build --tag aquamonitor:ci .
+      - name: Verify startup, security defaults, and persistent storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup() {
+            docker logs aquamonitor-smoke
+            docker rm -f aquamonitor-smoke
+            docker volume rm aquamonitor-smoke-data
+          }
+          trap cleanup EXIT
+          docker volume create aquamonitor-smoke-data
+          smoke_key="$(openssl rand -base64 48)"
+          docker run --detach --name aquamonitor-smoke \
+            --publish 127.0.0.1:8080:8080 \
+            --volume aquamonitor-smoke-data:/app/data \
+            --env "Jwt__Key=$smoke_key" aquamonitor:ci
+          curl --fail --retry 20 --retry-delay 1 --retry-connrefused http://localhost:8080/ -o /tmp/root.json
+          jq --exit-status '.api == "AquaMonitor API v1"' /tmp/root.json
+          test "$(docker exec aquamonitor-smoke id -u)" != "0"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/WaterSensors)" = "401"
+          curl --fail --silent --show-error http://localhost:8080/api/Auth/register \
+            --header 'Content-Type: application/json' \
+            --data '{"name":"Smoke","email":"smoke@example.test","password":"Test-only-password-123"}' -o /tmp/auth.json
+          jq --exit-status '.role == "User"' /tmp/auth.json
+          docker restart aquamonitor-smoke
+          curl --fail --retry 20 --retry-delay 1 --retry-connrefused http://localhost:8080/ -o /tmp/root.json
+          curl --fail --silent --show-error http://localhost:8080/api/Auth/login \
+            --header 'Content-Type: application/json' \
+            --data '{"email":"smoke@example.test","password":"Test-only-password-123"}' -o /tmp/auth.json
+          jq --exit-status '.role == "User" and (.token | length > 0)' /tmp/auth.json
