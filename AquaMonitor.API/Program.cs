@@ -76,16 +76,35 @@ builder.Services.AddControllers(o => o.Filters.Add<GlobalExceptionFilter>())
         };
     });
 
-builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddProblemDetails();
+builder.Services.AddCors();
+builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
+    .Configure<IConfiguration>((options, configuration) =>
+    {
+        var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        if (origins.Any(origin => !Uri.TryCreate(origin, UriKind.Absolute, out var uri) ||
+            uri.Scheme is not ("http" or "https") || uri.GetLeftPart(UriPartial.Authority) != origin))
+            throw new InvalidOperationException("Cors:AllowedOrigins must contain exact HTTP or HTTPS origins without paths or wildcards.");
+        options.AddDefaultPolicy(policy =>
+        {
+            if (origins.Length > 0)
+                policy.WithOrigins(origins).WithHeaders("Authorization", "Content-Type")
+                    .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE");
+            else
+                policy.SetIsOriginAllowed(_ => false);
+        });
+    });
 
 var app = builder.Build();
 
 app.Services.GetRequiredService<JwtSettings>();
+_ = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>>().Value;
 
 // ── Init DB ───────────────────────────────────────────────
 DatabaseInitializer.Initialize(app.Services.GetRequiredService<IDbConnectionFactory>());
 AdministratorBootstrap.Provision(app.Services.GetRequiredService<IDbConnectionFactory>(), app.Configuration, app.Environment);
 
+app.UseExceptionHandler();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

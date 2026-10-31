@@ -51,7 +51,7 @@ public class LeakAlertsController : ControllerBase
 
         using var db = _factory.Create();
         var where = new List<string>();
-        var p = new Dictionary<string, object?> { ["@uid"]=UserId, ["@limit"]=filter.PageSize, ["@offset"]=(filter.Page-1)*filter.PageSize };
+        var p = new Dictionary<string, object?> { ["@uid"]=UserId, ["@limit"]=filter.PageSize, ["@offset"]=((long)filter.Page-1)*filter.PageSize };
 
         if (!IsAdmin) where.Add("s.UserId=@uid");
         if (filter.SensorId.HasValue) { where.Add("a.SensorId=@sid"); p["@sid"]=filter.SensorId.Value; }

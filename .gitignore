@@ -44,3 +44,6 @@ coverage-results/
 *.tmp
 *~
 .DS_Store
+
+# Private HTTP client credentials and tokens
+http/http-client.private.env.json

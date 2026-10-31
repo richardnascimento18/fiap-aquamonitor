@@ -35,14 +35,14 @@ public class WaterSensorsController : ControllerBase
     /// <summary>Lista sensores com paginacao.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultVM<SensorResponseVM>), 200)]
-    public IActionResult GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public IActionResult GetAll([FromQuery, System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)] int page = 1, [FromQuery, System.ComponentModel.DataAnnotations.Range(1, 100)] int pageSize = 10)
     {
         if (page < 1) page = 1;
         if (pageSize is < 1 or > 100) pageSize = 10;
 
         using var db = _factory.Create();
         var filter = IsAdmin ? "" : "WHERE s.UserId=@uid";
-        var p = new Dictionary<string, object?> { ["@uid"] = UserId, ["@limit"] = pageSize, ["@offset"] = (page - 1) * pageSize };
+        var p = new Dictionary<string, object?> { ["@uid"] = UserId, ["@limit"] = pageSize, ["@offset"] = ((long)page - 1) * pageSize };
 
         var countSql = $"SELECT COUNT(*) c FROM WaterSensors s {filter}";
         var total = (int)(long)db.Query(countSql, p)[0]["c"]!;

@@ -44,14 +44,14 @@ public class WaterImpactReportsController : ControllerBase
     /// <summary>Lista relatorios com paginacao.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultVM<ReportResponseVM>), 200)]
-    public IActionResult GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public IActionResult GetAll([FromQuery, System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)] int page = 1, [FromQuery, System.ComponentModel.DataAnnotations.Range(1, 50)] int pageSize = 10)
     {
         if (page < 1) page = 1;
         if (pageSize is < 1 or > 50) pageSize = 10;
 
         using var db = _factory.Create();
         var filter = IsAdmin ? "" : "WHERE r.GeneratedByUserId=@uid";
-        var p = new Dictionary<string,object?> { ["@uid"]=UserId, ["@limit"]=pageSize, ["@offset"]=(page-1)*pageSize };
+        var p = new Dictionary<string,object?> { ["@uid"]=UserId, ["@limit"]=pageSize, ["@offset"]=((long)page-1)*pageSize };
 
         var total = (int)(long)db.Query($"SELECT COUNT(*) c FROM WaterImpactReports r {filter}", p)[0]["c"]!;
         var rows  = db.Query($"{SelectReports} {filter} ORDER BY r.GeneratedAt DESC LIMIT @limit OFFSET @offset", p);
@@ -98,6 +98,9 @@ public class WaterImpactReportsController : ControllerBase
 
         var saved = pl - tl;
         var reduction = pl > 0 ? Math.Round(saved / pl * 100, 2) : 0;
+
+        if (!double.IsFinite(tl) || !double.IsFinite(pl) || !double.IsFinite(saved) || !double.IsFinite(reduction))
+            return BadRequest(new { message = "Consumo fora do intervalo suportado para calculo." });
 
         var leaksDetected = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE CreatedAt>=@s AND CreatedAt<=@e", p)[0]["c"]!;
         var leaksResolved = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE ResolvedAt>=@s AND ResolvedAt<=@e", p)[0]["c"]!;

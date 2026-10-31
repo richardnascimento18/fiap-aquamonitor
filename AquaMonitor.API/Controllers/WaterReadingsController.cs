@@ -26,12 +26,13 @@ public class WaterReadingsController : ControllerBase
     [ProducesResponseType(typeof(PagedResultVM<ReadingResponseVM>), 200)]
     public IActionResult GetAll([FromQuery] ReadingFilterVM filter)
     {
+        if (filter.From > filter.To) return BadRequest(new { message = "Periodo invalido." });
         if (filter.Page < 1) filter.Page = 1;
         if (filter.PageSize is < 1 or > 100) filter.PageSize = 20;
 
         using var db = _factory.Create();
         var where = new List<string>();
-        var p = new Dictionary<string, object?> { ["@uid"]=UserId, ["@limit"]=filter.PageSize, ["@offset"]=(filter.Page-1)*filter.PageSize };
+        var p = new Dictionary<string, object?> { ["@uid"]=UserId, ["@limit"]=filter.PageSize, ["@offset"]=((long)filter.Page-1)*filter.PageSize };
 
         if (!IsAdmin) where.Add("s.UserId=@uid");
         if (filter.SensorId.HasValue) { where.Add("r.SensorId=@sid"); p["@sid"]=filter.SensorId.Value; }
@@ -108,6 +109,7 @@ public class WaterReadingsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ConsumptionSummaryVM>), 200)]
     public IActionResult GetSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int? sensorId)
     {
+        if (from > to || sensorId <= 0) return BadRequest(new { message = "Periodo ou sensor invalido." });
         using var db = _factory.Create();
         var where = new List<string>();
         var p = new Dictionary<string, object?> { ["@uid"]=UserId };

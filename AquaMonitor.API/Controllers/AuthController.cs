@@ -31,16 +31,16 @@ public class AuthController : ControllerBase
 
         using var db = _factory.Create();
         var exists = db.Query("SELECT 1 FROM Users WHERE Email=@e LIMIT 1",
-            new Dictionary<string, object?> { ["@e"] = vm.Email.ToLower() });
+            new Dictionary<string, object?> { ["@e"] = vm.Email.ToLowerInvariant() });
         if (exists.Count > 0) return Conflict(new { message = "E-mail ja cadastrado." });
 
         var hash = PasswordHelper.HashPassword(vm.Password);
         db.Execute("INSERT INTO Users (Name,Email,PasswordHash,Role,CreatedAt) VALUES (@n,@e,@h,'User',@c)",
-            new Dictionary<string, object?> { ["@n"]=vm.Name, ["@e"]=vm.Email.ToLower(), ["@h"]=hash, ["@c"]=DateTime.UtcNow.ToString("o") });
+            new Dictionary<string, object?> { ["@n"]=vm.Name, ["@e"]=vm.Email.ToLowerInvariant(), ["@h"]=hash, ["@c"]=DateTime.UtcNow.ToString("o") });
         var id = (int)db.LastInsertRowId();
 
         var token = _tokens.GenerateToken(id, vm.Email, vm.Name, "User");
-        return StatusCode(201, new AuthResponseVM { Token=token, Name=vm.Name, Email=vm.Email.ToLower(), Role="User", ExpiresAt=_tokens.GetExpiration() });
+        return StatusCode(201, new AuthResponseVM { Token=token, Name=vm.Name, Email=vm.Email.ToLowerInvariant(), Role="User", ExpiresAt=_tokens.GetExpiration() });
     }
 
     /// <summary>Autentica usuario e retorna JWT.</summary>
@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
 
         using var db = _factory.Create();
         var rows = db.Query("SELECT Id,Name,Email,PasswordHash,Role FROM Users WHERE Email=@e LIMIT 1",
-            new Dictionary<string, object?> { ["@e"] = vm.Email.ToLower() });
+            new Dictionary<string, object?> { ["@e"] = vm.Email.ToLowerInvariant() });
         if (rows.Count == 0) return Unauthorized(new { message = "Credenciais invalidas." });
 
         var row = rows[0];

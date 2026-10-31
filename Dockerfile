@@ -1,27 +1,18 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.427 AS build
 WORKDIR /src
-
-COPY AquaMonitor.API/AquaMonitor.API.csproj AquaMonitor.API/
-RUN dotnet restore AquaMonitor.API/AquaMonitor.API.csproj
-
+COPY global.json NuGet.config Directory.Build.props ./
+COPY AquaMonitor.API/AquaMonitor.API.csproj AquaMonitor.API/packages.lock.json AquaMonitor.API/
+RUN dotnet restore AquaMonitor.API/AquaMonitor.API.csproj --locked-mode
 COPY AquaMonitor.API/ AquaMonitor.API/
-WORKDIR /src/AquaMonitor.API
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish AquaMonitor.API/AquaMonitor.API.csproj --configuration Release --no-restore -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.33 AS runtime
 WORKDIR /app
-
-# Install SQLite native library (required by P/Invoke wrapper)
-RUN apt-get update && apt-get install -y libsqlite3-dev && rm -rf /var/lib/apt/lists/*
-
 COPY --from=build /app/publish .
-
-ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Development
-ENV ConnectionStrings__DefaultConnection=/app/data/aquamonitor.db
-
-RUN mkdir -p /app/data
-
+ENV ASPNETCORE_HTTP_PORTS=8080 \
+    ASPNETCORE_ENVIRONMENT=Production \
+    ConnectionStrings__DefaultConnection=/app/data/aquamonitor.db
+RUN mkdir -p /app/data && chown app:app /app/data
+USER app
 EXPOSE 8080
-
 ENTRYPOINT ["dotnet", "AquaMonitor.API.dll"]

@@ -19,9 +19,14 @@ public class UpdateAlertStatusVM
 }
 public class AlertFilterVM
 {
+    [Range(1, int.MaxValue)]
     public int? SensorId { get; set; }
+    [Range(0, 2)]
     public int? Status { get; set; }
+    [Range(1, 4)]
     public int? Severity { get; set; }
+    [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;
+    [Range(1, 100)]
     public int PageSize { get; set; } = 20;
 }
