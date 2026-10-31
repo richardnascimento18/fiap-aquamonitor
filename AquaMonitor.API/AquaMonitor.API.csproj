@@ -5,9 +5,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>AquaMonitor.API</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UserSecretsId>AquaMonitor-API-local-development</UserSecretsId>
   </PropertyGroup>
 
-  <!-- Zero external NuGet dependencies — uses only Microsoft.AspNetCore.App framework -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.33" />
+  </ItemGroup>
 
 </Project>

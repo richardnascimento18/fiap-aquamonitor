@@ -1,7 +1,7 @@
 namespace AquaMonitor.API.Data;
 
 /// <summary>
-/// Runs schema DDL and seeds the initial admin user.
+/// Runs idempotent schema DDL without provisioning accounts.
 /// Acts as the "migration" mechanism — idempotent via IF NOT EXISTS.
 /// </summary>
 public static class DatabaseInitializer
@@ -88,22 +88,5 @@ public static class DatabaseInitializer
             )
             """);
 
-        // ── Seed admin user ────────────────────────────────────────────────
-        var exists = db.Query("SELECT 1 FROM Users WHERE Email = 'admin@aquamonitor.com' LIMIT 1");
-        if (exists.Count == 0)
-        {
-            // Password: Admin@123  (PBKDF2-SHA256, 100000 iterations)
-            var hash = PasswordHelper.HashPassword("Admin@123");
-            db.Execute(
-                "INSERT INTO Users (Name, Email, PasswordHash, Role, CreatedAt) VALUES (@n,@e,@h,@r,@c)",
-                new Dictionary<string, object?>
-                {
-                    ["@n"] = "Administrador",
-                    ["@e"] = "admin@aquamonitor.com",
-                    ["@h"] = hash,
-                    ["@r"] = "Admin",
-                    ["@c"] = "2024-01-01T00:00:00Z"
-                });
-        }
     }
 }

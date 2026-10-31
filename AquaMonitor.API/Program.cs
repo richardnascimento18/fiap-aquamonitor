@@ -1,9 +1,9 @@
-using AquaMonitor.API;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
 using AquaMonitor.API.Data;
 using AquaMonitor.API.Filters;
 using AquaMonitor.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,10 +11,53 @@ var builder = WebApplication.CreateBuilder(args);
 var dbPath = builder.Configuration.GetConnectionString("DefaultConnection") ?? "aquamonitor.db";
 builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqliteConnectionFactory(dbPath));
 
-// ── Custom JWT Auth ───────────────────────────────────────
+// Validate signing configuration before serving any requests.
+builder.Services.AddSingleton<JwtSettings>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
-builder.Services.AddAuthentication("JWT")
-    .AddScheme<AuthenticationSchemeOptions, JwtAuthHandler>("JWT", null);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<JwtSettings>((options, jwt) =>
+    {
+        options.MapInboundClaims = false;
+        options.IncludeErrorDetails = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = jwt.SigningKey,
+            RequireSignedTokens = true,
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+            RequireExpirationTime = true,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+            ValidateIssuer = true,
+            ValidIssuer = jwt.Issuer,
+            ValidateAudience = true,
+            RequireAudience = true,
+            ValidAudience = jwt.Audience,
+            NameClaimType = "name",
+            RoleClaimType = "role"
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var principal = context.Principal!;
+                var subjects = principal.FindAll("sub").ToArray();
+                var roles = principal.FindAll("role").ToArray();
+                if (subjects.Length != 1 || !int.TryParse(subjects[0].Value, out var id) || id <= 0 ||
+                    roles.Length != 1 || roles[0].Value is not ("Admin" or "User"))
+                    context.Fail("Token identity or role is invalid.");
+                else
+                {
+                    // Controllers use only this trusted, validated identity.
+                    var identity = (ClaimsIdentity)principal.Identity!;
+                    foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) identity.RemoveClaim(claim);
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
 builder.Services.AddAuthorization();
 
 // ── Application Services ──────────────────────────────────
@@ -37,8 +80,11 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAn
 
 var app = builder.Build();
 
+app.Services.GetRequiredService<JwtSettings>();
+
 // ── Init DB ───────────────────────────────────────────────
 DatabaseInitializer.Initialize(app.Services.GetRequiredService<IDbConnectionFactory>());
+AdministratorBootstrap.Provision(app.Services.GetRequiredService<IDbConnectionFactory>(), app.Configuration, app.Environment);
 
 app.UseCors();
 app.UseAuthentication();
