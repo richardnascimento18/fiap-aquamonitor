@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **.NET Core 8**, seguindo a arquitetura **MVVM**, com endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
+O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **ASP.NET Core 8**, com controllers e DTOs, endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
 
 O sistema permite que empresas e instituições registrem sensores de medição hídrica, coletem leituras de consumo em tempo real, recebam alertas automáticos quando a vazão ultrapassa limites configurados e gerem relatórios de impacto ambiental com planos de mitigação.
 
@@ -49,6 +49,13 @@ docker run --env-file .env -p 8080:8080 -v aquamonitor-data:/app/data aquamonito
 
 A API estará disponível em `http://localhost:8080`.
 
+Para executar a mesma verificação de container usada no GitHub Actions (requer Python 3 e Docker):
+
+```bash
+docker build -t aquamonitor:ci .
+python3 scripts/ci/docker-smoke.py --image aquamonitor:ci
+```
+
 ---
 
 ## Configuração de Segurança
@@ -78,14 +85,14 @@ O container usa `Production`, porta 8080 e usuário sem privilégios. Volumes vi
 ```
 AquaMonitor/
 ├── AquaMonitor.API/
-│   ├── Controllers/        # Camada de apresentação (MVVM — View + Controller)
+│   ├── Controllers/        # Endpoints HTTP da API
 │   │   ├── AuthController.cs
 │   │   ├── WaterSensorsController.cs
 │   │   ├── WaterReadingsController.cs
 │   │   ├── LeakAlertsController.cs
 │   │   └── WaterImpactReportsController.cs
-│   ├── ViewModels/         # DTOs de entrada e saída (MVVM — ViewModel)
-│   ├── Models/             # Entidades de domínio (MVVM — Model)
+│   ├── ViewModels/         # DTOs de entrada e saída
+│   ├── Models/             # Modelos de dados
 │   ├── Services/           # Lógica de negócios (TokenService, AlertService)
 │   ├── Data/               # Infraestrutura de dados
 │   │   ├── SqliteConnection.cs       # Adaptador Microsoft.Data.Sqlite com transações
