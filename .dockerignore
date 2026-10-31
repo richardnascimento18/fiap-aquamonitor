@@ -15,3 +15,10 @@ coverage*
 **/*.log
 AGENTS.md
 CONTRIBUTING.md
+
+# Private configuration must never enter the image build context.
+**/.env
+**/.env.*
+**/appsettings.Local.json
+**/http-client.private.env.json
+**/secrets.json
