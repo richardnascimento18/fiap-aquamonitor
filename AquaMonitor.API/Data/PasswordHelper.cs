@@ -9,8 +9,8 @@ namespace AquaMonitor.API.Data;
 public static class PasswordHelper
 {
     private const int Iterations = 600_000;
-    private const int SaltBytes   = 16;
-    private const int HashBytes    = 32;
+    private const int SaltBytes = 16;
+    private const int HashBytes = 32;
 
     public static string HashPassword(string password)
     {

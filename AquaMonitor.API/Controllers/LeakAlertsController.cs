@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using AquaMonitor.API.Data;
 using AquaMonitor.API.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AquaMonitor.API.Controllers;
 
@@ -15,10 +15,10 @@ public class LeakAlertsController : ControllerBase
     private readonly IDbConnectionFactory _factory;
     public LeakAlertsController(IDbConnectionFactory factory) => _factory = factory;
 
-    private int  UserId  => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+    private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
     private bool IsAdmin => User.IsInRole("Admin");
 
-    private static AlertResponseVM MapAlert(Dictionary<string,object?> r) => new()
+    private static AlertResponseVM MapAlert(Dictionary<string, object?> r) => new()
     {
         Id = (int)(long)r["Id"]!,
         Message = r["Message"]?.ToString() ?? "",
@@ -51,19 +51,19 @@ public class LeakAlertsController : ControllerBase
 
         using var db = _factory.Create();
         var where = new List<string>();
-        var p = new Dictionary<string, object?> { ["@uid"]=UserId, ["@limit"]=filter.PageSize, ["@offset"]=((long)filter.Page-1)*filter.PageSize };
+        var p = new Dictionary<string, object?> { ["@uid"] = UserId, ["@limit"] = filter.PageSize, ["@offset"] = ((long)filter.Page - 1) * filter.PageSize };
 
         if (!IsAdmin) where.Add("s.UserId=@uid");
-        if (filter.SensorId.HasValue) { where.Add("a.SensorId=@sid"); p["@sid"]=filter.SensorId.Value; }
-        if (filter.Status.HasValue)   { where.Add("a.Status=@st");    p["@st"]=(int)filter.Status.Value; }
-        if (filter.Severity.HasValue) { where.Add("a.Severity=@sev"); p["@sev"]=(int)filter.Severity.Value; }
+        if (filter.SensorId.HasValue) { where.Add("a.SensorId=@sid"); p["@sid"] = filter.SensorId.Value; }
+        if (filter.Status.HasValue) { where.Add("a.Status=@st"); p["@st"] = (int)filter.Status.Value; }
+        if (filter.Severity.HasValue) { where.Add("a.Severity=@sev"); p["@sev"] = (int)filter.Severity.Value; }
 
-        var wClause = where.Count>0 ? "WHERE "+string.Join(" AND ", where) : "";
+        var wClause = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
         var total = (int)(long)db.Query($"SELECT COUNT(*) c FROM LeakAlerts a JOIN WaterSensors s ON s.Id=a.SensorId {wClause}", p)[0]["c"]!;
-        var rows  = db.Query($"{SelectAlerts} {wClause} ORDER BY a.CreatedAt DESC LIMIT @limit OFFSET @offset", p);
+        var rows = db.Query($"{SelectAlerts} {wClause} ORDER BY a.CreatedAt DESC LIMIT @limit OFFSET @offset", p);
 
         return Ok(new PagedResultVM<AlertResponseVM>
-        { Data=rows.Select(MapAlert), Page=filter.Page, PageSize=filter.PageSize, TotalCount=total });
+        { Data = rows.Select(MapAlert), Page = filter.Page, PageSize = filter.PageSize, TotalCount = total });
     }
 
     /// <summary>Retorna alerta por ID.</summary>
@@ -75,7 +75,7 @@ public class LeakAlertsController : ControllerBase
         using var db = _factory.Create();
         var filter = IsAdmin ? "a.Id=@id" : "a.Id=@id AND s.UserId=@uid";
         var rows = db.Query($"{SelectAlerts} WHERE {filter} LIMIT 1",
-            new Dictionary<string, object?> { ["@id"]=id, ["@uid"]=UserId });
+            new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = UserId });
         if (rows.Count == 0) return NotFound(new { message = "Alerta nao encontrado." });
         return Ok(MapAlert(rows[0]));
     }
@@ -90,15 +90,15 @@ public class LeakAlertsController : ControllerBase
         using var db = _factory.Create();
         var filter = IsAdmin ? "a.Id=@id" : "a.Id=@id AND s.UserId=@uid";
         var chk = db.Query($"SELECT a.Id FROM LeakAlerts a JOIN WaterSensors s ON s.Id=a.SensorId WHERE {filter} LIMIT 1",
-            new Dictionary<string, object?> { ["@id"]=id, ["@uid"]=UserId });
+            new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = UserId });
         if (chk.Count == 0) return NotFound(new { message = "Alerta nao encontrado." });
 
         var resolvedAt = vm.Status == 2 ? DateTime.UtcNow.ToString("o") : null;
         db.Execute("UPDATE LeakAlerts SET Status=@st, ResolvedAt=@ra WHERE Id=@id",
-            new Dictionary<string, object?> { ["@st"]=vm.Status, ["@ra"]=resolvedAt, ["@id"]=id });
+            new Dictionary<string, object?> { ["@st"] = vm.Status, ["@ra"] = resolvedAt, ["@id"] = id });
 
         var rows = db.Query($"{SelectAlerts} WHERE a.Id=@id LIMIT 1",
-            new Dictionary<string, object?> { ["@id"]=id, ["@uid"]=UserId });
+            new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = UserId });
         return Ok(MapAlert(rows[0]));
     }
 
@@ -109,14 +109,14 @@ public class LeakAlertsController : ControllerBase
     public IActionResult GetStats()
     {
         using var db = _factory.Create();
-        var total       = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts")[0]["c"]!;
-        var open        = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE Status=0")[0]["c"]!;
-        var ack         = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE Status=1")[0]["c"]!;
-        var resolved    = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE Status=2")[0]["c"]!;
-        var bySeverity  = db.Query("SELECT Severity, COUNT(*) cnt FROM LeakAlerts GROUP BY Severity")
-            .Select(r => new { severity=SevLabel((int)(long)r["Severity"]!), count=(long)r["cnt"]! });
-        return Ok(new { totalAlerts=total, openAlerts=open, acknowledgedAlerts=ack, resolvedAlerts=resolved, bySeverity });
+        var total = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts")[0]["c"]!;
+        var open = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE Status=0")[0]["c"]!;
+        var ack = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE Status=1")[0]["c"]!;
+        var resolved = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE Status=2")[0]["c"]!;
+        var bySeverity = db.Query("SELECT Severity, COUNT(*) cnt FROM LeakAlerts GROUP BY Severity")
+            .Select(r => new { severity = SevLabel((int)(long)r["Severity"]!), count = (long)r["cnt"]! });
+        return Ok(new { totalAlerts = total, openAlerts = open, acknowledgedAlerts = ack, resolvedAlerts = resolved, bySeverity });
     }
 
-    private static string SevLabel(int s) => s switch{4=>"Critical",3=>"High",2=>"Medium",_=>"Low"};
+    private static string SevLabel(int s) => s switch { 4 => "Critical", 3 => "High", 2 => "Medium", _ => "Low" };
 }

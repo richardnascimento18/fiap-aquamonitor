@@ -73,7 +73,8 @@ public class SecurityConfigurationTests
         var connections = new SqliteConnectionFactory(factory.DatabasePath);
         var settings = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["BootstrapAdmin:Enabled"] = "true", ["BootstrapAdmin:Email"] = "bootstrap@test.com",
+            ["BootstrapAdmin:Enabled"] = "true",
+            ["BootstrapAdmin:Email"] = "bootstrap@test.com",
             ["BootstrapAdmin:Password"] = "Test-only-admin-password-917"
         }).Build();
         AdministratorBootstrap.Provision(connections, settings, new TestEnvironment("Development"));
@@ -101,7 +102,8 @@ public class SecurityConfigurationTests
         response.EnsureSuccessStatusCode();
         var settings = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["BootstrapAdmin:Enabled"] = "true", ["BootstrapAdmin:Email"] = "existing@test.com",
+            ["BootstrapAdmin:Enabled"] = "true",
+            ["BootstrapAdmin:Email"] = "existing@test.com",
             ["BootstrapAdmin:Password"] = "Test-only-admin-password-917"
         }).Build();
         Assert.Throws<InvalidOperationException>(() => AdministratorBootstrap.Provision(new SqliteConnectionFactory(factory.DatabasePath), settings, new TestEnvironment("Development")));

@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using AquaMonitor.API.Data;
 using AquaMonitor.API.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AquaMonitor.API.Controllers;
 
@@ -15,7 +15,7 @@ public class WaterSensorsController : ControllerBase
     private readonly IDbConnectionFactory _factory;
     public WaterSensorsController(IDbConnectionFactory factory) => _factory = factory;
 
-    private int  UserId  => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+    private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
     private bool IsAdmin => User.IsInRole("Admin");
 
     private static SensorResponseVM MapSensor(Dictionary<string, object?> r) => new()
@@ -61,7 +61,9 @@ public class WaterSensorsController : ControllerBase
         return Ok(new PagedResultVM<SensorResponseVM>
         {
             Data = rows.Select(MapSensor),
-            Page = page, PageSize = pageSize, TotalCount = total
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
         });
     }
 
@@ -81,7 +83,7 @@ public class WaterSensorsController : ControllerBase
             FROM WaterSensors s JOIN Users u ON u.Id=s.UserId
             WHERE {filter} LIMIT 1
             """;
-        var rows = db.Query(sql, new Dictionary<string, object?> { ["@id"]=id, ["@uid"]=UserId });
+        var rows = db.Query(sql, new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = UserId });
         if (rows.Count == 0) return NotFound(new { message = "Sensor nao encontrado." });
         return Ok(MapSensor(rows[0]));
     }
@@ -97,7 +99,7 @@ public class WaterSensorsController : ControllerBase
         using var db = _factory.Create();
         db.Execute(
             "INSERT INTO WaterSensors (Name,Location,AlertThresholdLitersPerHour,IsActive,InstalledAt,UserId) VALUES (@n,@l,@t,1,@ia,@uid)",
-            new Dictionary<string, object?> { ["@n"]=vm.Name, ["@l"]=vm.Location, ["@t"]=vm.AlertThresholdLitersPerHour, ["@ia"]=DateTime.UtcNow.ToString("o"), ["@uid"]=UserId });
+            new Dictionary<string, object?> { ["@n"] = vm.Name, ["@l"] = vm.Location, ["@t"] = vm.AlertThresholdLitersPerHour, ["@ia"] = DateTime.UtcNow.ToString("o"), ["@uid"] = UserId });
         var newId = (int)db.LastInsertRowId();
         return StatusCode(201, GetSensorById_Internal(db, newId));
     }
@@ -113,12 +115,12 @@ public class WaterSensorsController : ControllerBase
         using var db = _factory.Create();
         var filter = IsAdmin ? "Id=@id" : "Id=@id AND UserId=@uid";
         var exists = db.Query($"SELECT 1 FROM WaterSensors WHERE {filter} LIMIT 1",
-            new Dictionary<string, object?> { ["@id"]=id, ["@uid"]=UserId });
+            new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = UserId });
         if (exists.Count == 0) return NotFound(new { message = "Sensor nao encontrado." });
 
         var sets = new List<string>();
-        var p = new Dictionary<string, object?> { ["@id"]=id, ["@uid"]=UserId };
-        if (vm.Name     is not null) { sets.Add("Name=@n");     p["@n"] = vm.Name; }
+        var p = new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = UserId };
+        if (vm.Name is not null) { sets.Add("Name=@n"); p["@n"] = vm.Name; }
         if (vm.Location is not null) { sets.Add("Location=@l"); p["@l"] = vm.Location; }
         if (vm.AlertThresholdLitersPerHour.HasValue) { sets.Add("AlertThresholdLitersPerHour=@t"); p["@t"] = vm.AlertThresholdLitersPerHour.Value; }
         if (vm.IsActive.HasValue) { sets.Add("IsActive=@a"); p["@a"] = vm.IsActive.Value ? 1 : 0; }
@@ -137,9 +139,9 @@ public class WaterSensorsController : ControllerBase
     {
         using var db = _factory.Create();
         var exists = db.Query("SELECT 1 FROM WaterSensors WHERE Id=@id LIMIT 1",
-            new Dictionary<string, object?> { ["@id"]=id });
+            new Dictionary<string, object?> { ["@id"] = id });
         if (exists.Count == 0) return NotFound(new { message = "Sensor nao encontrado." });
-        db.Execute("DELETE FROM WaterSensors WHERE Id=@id", new Dictionary<string, object?> { ["@id"]=id });
+        db.Execute("DELETE FROM WaterSensors WHERE Id=@id", new Dictionary<string, object?> { ["@id"] = id });
         return NoContent();
     }
 

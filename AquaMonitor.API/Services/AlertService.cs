@@ -15,7 +15,7 @@ public sealed class AlertService : IAlertService
         if (flowRate <= threshold) return null;
 
         var severity = DetermineSeverity(flowRate, threshold);
-        var message  = $"[{SeverityLabel(severity)}] Sensor '{sensorName}' em '{location}' registrou vazao de {flowRate:F1} L/h — limite: {threshold:F1} L/h. Possivel vazamento detectado em {DateTime.UtcNow:dd/MM/yyyy HH:mm} UTC.";
+        var message = $"[{SeverityLabel(severity)}] Sensor '{sensorName}' em '{location}' registrou vazao de {flowRate:F1} L/h — limite: {threshold:F1} L/h. Possivel vazamento detectado em {DateTime.UtcNow:dd/MM/yyyy HH:mm} UTC.";
 
         db.Execute(
             "INSERT INTO LeakAlerts (SensorId, Message, Severity, Status, TriggerFlowRate, CreatedAt) VALUES (@sid,@msg,@sev,0,@tfr,@ca)",
@@ -25,7 +25,7 @@ public sealed class AlertService : IAlertService
                 ["@msg"] = message,
                 ["@sev"] = severity,
                 ["@tfr"] = flowRate,
-                ["@ca"]  = DateTime.UtcNow.ToString("o")
+                ["@ca"] = DateTime.UtcNow.ToString("o")
             });
 
         var id = (int)db.LastInsertRowId();

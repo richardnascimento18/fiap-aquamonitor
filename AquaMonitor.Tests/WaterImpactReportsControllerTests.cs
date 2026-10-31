@@ -15,8 +15,8 @@ public class WaterImpactReportsControllerTests : IClassFixture<AquaMonitorWebApp
     private async Task AuthAsync()
     {
         var email = $"u{Guid.NewGuid():N}@test.com";
-        await _client.PostAsJsonAsync("/api/Auth/register", new{name="T",email,password="Senha@123"});
-        var r = await _client.PostAsJsonAsync("/api/Auth/login", new{email,password="Senha@123"});
+        await _client.PostAsJsonAsync("/api/Auth/register", new { name = "T", email, password = "Senha@123" });
+        var r = await _client.PostAsJsonAsync("/api/Auth/login", new { email, password = "Senha@123" });
         var token = (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString()!;
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }

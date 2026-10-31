@@ -15,7 +15,7 @@ public class AlertResponseVM
 }
 public class UpdateAlertStatusVM
 {
-    [Required][Range(0,2)] public int Status { get; set; }
+    [Required][Range(0, 2)] public int Status { get; set; }
 }
 public class AlertFilterVM
 {

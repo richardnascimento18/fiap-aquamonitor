@@ -32,8 +32,11 @@ public class AuthenticationSecurityTests
         using var client = factory.CreateClient();
         var claims = new Dictionary<string, object>
         {
-            ["sub"] = "1", ["role"] = "User", ["iss"] = "AquaMonitor.Tests",
-            ["aud"] = "AquaMonitor.Tests.Client", ["exp"] = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds()
+            ["sub"] = "1",
+            ["role"] = "User",
+            ["iss"] = "AquaMonitor.Tests",
+            ["aud"] = "AquaMonitor.Tests.Client",
+            ["exp"] = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds()
         };
         if (scenario.StartsWith("no-")) claims.Remove(scenario[3..]);
         switch (scenario)

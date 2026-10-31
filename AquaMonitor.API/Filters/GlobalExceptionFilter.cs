@@ -1,6 +1,6 @@
-using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Data.Sqlite;
 namespace AquaMonitor.API.Filters;
 public class GlobalExceptionFilter : IExceptionFilter
 {
@@ -16,7 +16,8 @@ public class GlobalExceptionFilter : IExceptionFilter
             Status = status,
             Title = status == 409 ? "Conflito de integridade dos dados." : "Erro interno do servidor.",
             Detail = status == 409 ? "A operacao viola uma restricao dos dados." : "Contate o suporte."
-        }) { StatusCode = status };
+        })
+        { StatusCode = status };
         context.ExceptionHandled = true;
     }
 }

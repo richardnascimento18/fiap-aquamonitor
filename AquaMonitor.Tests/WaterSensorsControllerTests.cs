@@ -16,8 +16,8 @@ public class WaterSensorsControllerTests : IClassFixture<AquaMonitorWebApplicati
     private async Task<string> GetTokenAsync()
     {
         var email = $"u{Guid.NewGuid():N}@test.com";
-        await _client.PostAsJsonAsync("/api/Auth/register", new{name="T",email,password="Senha@123"});
-        var r = await _client.PostAsJsonAsync("/api/Auth/login", new{email,password="Senha@123"});
+        await _client.PostAsJsonAsync("/api/Auth/register", new { name = "T", email, password = "Senha@123" });
+        var r = await _client.PostAsJsonAsync("/api/Auth/login", new { email, password = "Senha@123" });
         return (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString()!;
     }
 
@@ -34,7 +34,7 @@ public class WaterSensorsControllerTests : IClassFixture<AquaMonitorWebApplicati
     {
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetTokenAsync());
         var response = await _client.PostAsJsonAsync("/api/WaterSensors",
-            new{name="Sensor A",location="Piso 1",alertThresholdLitersPerHour=300.0});
+            new { name = "Sensor A", location = "Piso 1", alertThresholdLitersPerHour = 300.0 });
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
