@@ -87,7 +87,7 @@ jobs:
             --publish 127.0.0.1:8080:8080 \
             --volume aquamonitor-smoke-data:/app/data \
             --env "Jwt__Key=$smoke_key" aquamonitor:ci
-          curl --fail --retry 20 --retry-delay 1 --retry-connrefused http://localhost:8080/ -o /tmp/root.json
+          curl --fail --retry 20 --retry-delay 1 --retry-all-errors --connect-timeout 2 --max-time 5 --retry-max-time 60 http://localhost:8080/ -o /tmp/root.json
           jq --exit-status '.api == "AquaMonitor API v1"' /tmp/root.json
           test "$(docker exec aquamonitor-smoke id -u)" != "0"
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/WaterSensors)" = "401"
@@ -96,7 +96,7 @@ jobs:
             --data '{"name":"Smoke","email":"smoke@example.test","password":"Test-only-password-123"}' -o /tmp/auth.json
           jq --exit-status '.role == "User"' /tmp/auth.json
           docker restart aquamonitor-smoke
-          curl --fail --retry 20 --retry-delay 1 --retry-connrefused http://localhost:8080/ -o /tmp/root.json
+          curl --fail --retry 20 --retry-delay 1 --retry-all-errors --connect-timeout 2 --max-time 5 --retry-max-time 60 http://localhost:8080/ -o /tmp/root.json
           curl --fail --silent --show-error http://localhost:8080/api/Auth/login \
             --header 'Content-Type: application/json' \
             --data '{"email":"smoke@example.test","password":"Test-only-password-123"}' -o /tmp/auth.json
