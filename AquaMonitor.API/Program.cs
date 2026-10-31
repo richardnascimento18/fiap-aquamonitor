@@ -5,6 +5,31 @@ using AquaMonitor.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
+if (args.Contains("--provision-admin", StringComparer.Ordinal))
+{
+    if (args.Length != 1)
+    {
+        Console.Error.WriteLine("Use --provision-admin alone; supply database and credentials through private environment variables.");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    // Do not load application defaults or construct a web host for this offline command.
+    using var configuration = new ConfigurationManager();
+    configuration.AddEnvironmentVariables();
+    try
+    {
+        AdministratorBootstrap.ProvisionOffline(configuration);
+        Console.WriteLine("Administrator provisioning completed. HTTP server was not started.");
+    }
+    catch (InvalidOperationException exception)
+    {
+        Console.Error.WriteLine(exception.Message);
+        Environment.ExitCode = 1;
+    }
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ──────────────────────────────────────────────

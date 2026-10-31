@@ -55,7 +55,17 @@ A API estará disponível em `http://localhost:8080`.
 
 `Jwt:Key` é obrigatório: use um segredo aleatório novo com pelo menos 32 bytes UTF-8, por variável `Jwt__Key` ou user secrets. A aplicação recusa configuração ausente ou inválida. `.env.example` contém exemplos sem credenciais; `dotnet run` não carrega arquivos `.env` automaticamente.
 
-Para demonstrações locais, somente em `Development`, habilite explicitamente `BootstrapAdmin__Enabled=true` e forneça `BootstrapAdmin__Email` e `BootstrapAdmin__Password` (mínimo 14 caracteres) por configuração privada. A criação é idempotente e não promove contas existentes. Em produção, o bootstrap é recusado; o provisionamento de administradores exige um procedimento operacional controlado sobre o banco existente.
+Para demonstrações locais, somente em `Development`, habilite explicitamente `BootstrapAdmin__Enabled=true` e forneça `BootstrapAdmin__Email` e `BootstrapAdmin__Password` (14 a 1024 caracteres) por configuração privada. A criação é idempotente e não promove contas existentes. O bootstrap de inicialização continua proibido em Production.
+
+Para uma instalação nova em Production, execute uma vez o comando offline com o mesmo volume do serviço. Exporte privadamente `ConnectionStrings__DefaultConnection`, `BootstrapAdmin__Email` e `BootstrapAdmin__Password`; o comando lê somente variáveis de ambiente e exige um banco explicitamente configurado:
+
+```bash
+docker run --rm -v aquamonitor-data:/app/data \
+  -e ConnectionStrings__DefaultConnection -e BootstrapAdmin__Email -e BootstrapAdmin__Password \
+  aquamonitor-api --provision-admin
+```
+
+Use `ConnectionStrings__DefaultConnection=/app/data/aquamonitor.db` para esse volume. Também é possível executar `dotnet AquaMonitor.API.dll --provision-admin` no diretório publicado. O comando cria o schema se necessário e encerra sem iniciar HTTP; não exige chave JWT, não promove usuários existentes e não altera senhas já provisionadas. Remova as variáveis de credenciais do ambiente após o uso.
 
 Chaves JWT, senhas de administrador e tokens publicados em versões anteriores devem ser tratados como comprometidos e substituídos nos ambientes existentes. O bootstrap não altera senhas já armazenadas.
 
