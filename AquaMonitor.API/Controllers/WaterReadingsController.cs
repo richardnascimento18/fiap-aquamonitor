@@ -71,11 +71,13 @@ public class WaterReadingsController : ControllerBase
     [ProducesResponseType(201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
-    public async Task<IActionResult> Create([FromBody] CreateReadingVM vm)
+    public IActionResult Create([FromBody] CreateReadingVM vm)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         using var db = _factory.Create();
+        return db.InTransaction<IActionResult>(() =>
+        {
         var sensor = db.Query("SELECT Id,Name,Location,AlertThresholdLitersPerHour,IsActive,UserId FROM WaterSensors WHERE Id=@id LIMIT 1",
             new Dictionary<string, object?> { ["@id"]=vm.SensorId });
         if (sensor.Count == 0) return NotFound(new { message = "Sensor nao encontrado." });
@@ -94,10 +96,11 @@ public class WaterReadingsController : ControllerBase
 
         int? alertId = null;
         if (isAnomaly)
-            alertId = await _alerts.EvaluateReadingAsync(vm.SensorId, vm.FlowRateLitersPerHour, threshold,
+            alertId = _alerts.EvaluateReading(db, vm.SensorId, vm.FlowRateLitersPerHour, threshold,
                 s["Name"]?.ToString()!, s["Location"]?.ToString()!);
 
         return StatusCode(201, new { readingId=newId, alertGenerated=alertId.HasValue, alertId });
+        });
     }
 
     /// <summary>Resumo de consumo por sensor em um periodo.</summary>
