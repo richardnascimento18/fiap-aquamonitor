@@ -9,9 +9,11 @@ public class CreateReadingVM
     public int SensorId { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Consumo não pode ser negativo.")]
+    [FiniteNumber]
     public double LitersConsumed { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Vazão não pode ser negativa.")]
+    [FiniteNumber]
     public double FlowRateLitersPerHour { get; set; }
 
     public DateTime? RecordedAt { get; set; }
@@ -31,11 +33,14 @@ public class ReadingResponseVM
 
 public class ReadingFilterVM
 {
+    [Range(1, int.MaxValue)]
     public int? SensorId { get; set; }
     public DateTime? From { get; set; }
     public DateTime? To { get; set; }
     public bool? AnomaliesOnly { get; set; }
+    [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;
+    [Range(1, 100)]
     public int PageSize { get; set; } = 20;
 }
 

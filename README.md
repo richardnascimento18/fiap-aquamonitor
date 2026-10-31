@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **.NET Core 8**, seguindo a arquitetura **MVVM**, com endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
+O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **ASP.NET Core 8**, com controllers e DTOs, endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
 
 O sistema permite que empresas e instituições registrem sensores de medição hídrica, coletem leituras de consumo em tempo real, recebam alertas automáticos quando a vazão ultrapassa limites configurados e gerem relatórios de impacto ambiental com planos de mitigação.
 
@@ -12,11 +12,10 @@ O sistema permite que empresas e instituições registrem sensores de medição 
 
 | Ferramenta | Versão mínima |
 |---|---|
-| .NET SDK | 8.0 |
-| libsqlite3 (Linux) | 3.x |
+| .NET SDK | 8.0.427 (conforme `global.json`) |
 | Docker (opcional) | 20.x |
 
-> **Importante:** o projeto utiliza SQLite via chamadas nativas ao `libsqlite3.so.0`, dispensando qualquer pacote NuGet externo de banco de dados. O único pacote externo necessário para os **testes** é o xUnit, que será restaurado automaticamente pelo `dotnet restore` em um ambiente com acesso à internet.
+> As dependências de autenticação, SQLite e testes são restauradas pelo NuGet. O driver `Microsoft.Data.Sqlite` inclui a biblioteca nativa SQLite para as plataformas suportadas.
 
 ---
 
@@ -28,35 +27,56 @@ O sistema permite que empresas e instituições registrem sensores de medição 
 # 1. Entre na pasta da API
 cd AquaMonitor.API
 
-# 2. Execute a aplicação
+# 2. Configure uma chave privada (uma vez por ambiente de desenvolvimento)
+dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
+
+# 3. Execute a aplicação
 dotnet run
 ```
 
 A API estará disponível em `http://localhost:5178`.
 
-O banco de dados SQLite (`aquamonitor.db`) será criado automaticamente na primeira execução, incluindo o schema completo e o usuário administrador padrão.
+O banco de dados SQLite (`aquamonitor.db`) será criado automaticamente na primeira execução, incluindo o schema completo. Nenhum usuário é criado automaticamente.
 
 ### Opção 2 — Docker
 
 ```bash
 # Na raiz do projeto (onde está o Dockerfile)
 docker build -t aquamonitor-api .
-docker run -p 8080:8080 -v aquamonitor-data:/app/data aquamonitor-api
+# Copie .env.example para .env e configure Jwt__Key com um segredo novo.
+docker run --env-file .env -p 8080:8080 -v aquamonitor-data:/app/data aquamonitor-api
 ```
 
 A API estará disponível em `http://localhost:8080`.
 
+Para executar a mesma verificação de container usada no GitHub Actions (requer Python 3 e Docker):
+
+```bash
+docker build -t aquamonitor:ci .
+python3 scripts/ci/docker-smoke.py --image aquamonitor:ci
+```
+
 ---
 
-## Credenciais Padrão
+## Configuração de Segurança
 
-O sistema cria automaticamente um usuário administrador na inicialização:
+`Jwt:Key` é obrigatório: use um segredo aleatório novo com pelo menos 32 bytes UTF-8, por variável `Jwt__Key` ou user secrets. A aplicação recusa configuração ausente ou inválida. `.env.example` contém exemplos sem credenciais; `dotnet run` não carrega arquivos `.env` automaticamente.
 
-| Campo | Valor |
-|---|---|
-| E-mail | `admin@aquamonitor.com` |
-| Senha | `Admin@123` |
-| Role | `Admin` |
+Para demonstrações locais, somente em `Development`, habilite explicitamente `BootstrapAdmin__Enabled=true` e forneça `BootstrapAdmin__Email` e `BootstrapAdmin__Password` (14 a 1024 caracteres) por configuração privada. A criação é idempotente e não promove contas existentes. O bootstrap de inicialização continua proibido em Production.
+
+Para uma instalação nova em Production, execute uma vez o comando offline com o mesmo volume do serviço. Exporte privadamente `ConnectionStrings__DefaultConnection`, `BootstrapAdmin__Email` e `BootstrapAdmin__Password`; o comando lê somente variáveis de ambiente e exige um banco explicitamente configurado:
+
+```bash
+docker run --rm -v aquamonitor-data:/app/data \
+  -e ConnectionStrings__DefaultConnection -e BootstrapAdmin__Email -e BootstrapAdmin__Password \
+  aquamonitor-api --provision-admin
+```
+
+Use `ConnectionStrings__DefaultConnection=/app/data/aquamonitor.db` para esse volume. Também é possível executar `dotnet AquaMonitor.API.dll --provision-admin` no diretório publicado. O comando cria o schema se necessário e encerra sem iniciar HTTP; não exige chave JWT, não promove usuários existentes e não altera senhas já provisionadas. Remova as variáveis de credenciais do ambiente após o uso.
+
+Chaves JWT, senhas de administrador e tokens publicados em versões anteriores devem ser tratados como comprometidos e substituídos nos ambientes existentes. O bootstrap não altera senhas já armazenadas.
+
+O container usa `Production`, porta 8080 e usuário sem privilégios. Volumes vinculados devem permitir escrita pelo UID 1654 em `/app/data`. CORS bloqueia origens de navegador por padrão; configure origens exatas em `Cors__AllowedOrigins__0` (sem barra final). Clientes como curl e Postman continuam funcionando.
 
 ---
 
@@ -65,23 +85,22 @@ O sistema cria automaticamente um usuário administrador na inicialização:
 ```
 AquaMonitor/
 ├── AquaMonitor.API/
-│   ├── Controllers/        # Camada de apresentação (MVVM — View + Controller)
+│   ├── Controllers/        # Endpoints HTTP da API
 │   │   ├── AuthController.cs
 │   │   ├── WaterSensorsController.cs
 │   │   ├── WaterReadingsController.cs
 │   │   ├── LeakAlertsController.cs
 │   │   └── WaterImpactReportsController.cs
-│   ├── ViewModels/         # DTOs de entrada e saída (MVVM — ViewModel)
-│   ├── Models/             # Entidades de domínio (MVVM — Model)
+│   ├── ViewModels/         # DTOs de entrada e saída
+│   ├── Models/             # Modelos de dados
 │   ├── Services/           # Lógica de negócios (TokenService, AlertService)
 │   ├── Data/               # Infraestrutura de dados
-│   │   ├── SqliteConnection.cs       # Wrapper P/Invoke sobre libsqlite3
+│   │   ├── SqliteConnection.cs       # Adaptador Microsoft.Data.Sqlite com transações
 │   │   ├── SqliteConnectionFactory.cs
-│   │   ├── DatabaseInitializer.cs    # Schema DDL + seed (equivalente às migrations)
-│   │   └── PasswordHelper.cs         # PBKDF2-SHA256 (sem BCrypt NuGet)
+│   │   ├── DatabaseInitializer.cs    # Schema DDL idempotente
+│   │   └── PasswordHelper.cs         # PBKDF2-SHA256, compatível com hashes existentes
 │   ├── Filters/
 │   │   └── GlobalExceptionFilter.cs  # Tratamento centralizado de exceções
-│   ├── JwtAuthHandler.cs             # Handler JWT customizado (sem JwtBearer NuGet)
 │   └── Program.cs
 ├── AquaMonitor.Tests/
 │   ├── AuthControllerTests.cs
@@ -146,7 +165,7 @@ AquaMonitor/
 1. Abra o Postman e importe o arquivo `AquaMonitor_Postman_Collection.json`
 2. Na variável de coleção `baseUrl`, confirme o valor `http://localhost:5178` (ou `http://localhost:8080` para Docker)
 3. Execute as requisições **na ordem das pastas** (01 → 05), pois os testes capturam automaticamente tokens e IDs via scripts de teste
-4. A requisição **"Login admin"** popula a variável `adminToken`, utilizada nas rotas protegidas
+4. Configure `adminEmail` e `adminPassword` privadamente no Postman com a conta provisionada. A requisição **"Login admin"** popula a variável `adminToken`, utilizada nas rotas protegidas
 5. A requisição **"Registrar leitura com ANOMALIA"** demonstra a geração automática de alerta
 
 ### Fluxo recomendado de teste
@@ -173,30 +192,21 @@ dotnet test
 
 Os testes utilizam **WebApplicationFactory** com banco de dados SQLite isolado por execução, garantindo independência entre os testes. Cada controller possui ao menos um teste que valida o **status code 200**, conforme exigido pela especificação.
 
-### Testes implementados
-
-| Classe | Testes | Descrição |
-|---|---|---|
-| `AuthControllerTests` | 4 | Register 201, Login 200, credenciais inválidas 401, e-mail duplicado 409 |
-| `WaterSensorsControllerTests` | 4 | Listagem 200, criação 201, ID inválido 404, sem token 401 |
-| `WaterReadingsControllerTests` | 4 | Listagem 200, criação 201, anomalia gera alerta, sumário 200 |
-| `LeakAlertsControllerTests` | 2 | Listagem 200, ID inválido 404 |
-| `WaterImpactReportsControllerTests` | 2 | Listagem 200, ID inválido 404 |
 
 ---
 
 ## Decisões Técnicas
 
 ### Banco de Dados
-O projeto utiliza **SQLite** via chamadas P/Invoke diretas ao `libsqlite3.so.0` (biblioteca nativa do sistema operacional), implementadas na classe `SqliteConnection`. Essa abordagem elimina dependências de NuGet externas mantendo todas as funcionalidades esperadas — consultas, transações, índices e paginação.
+O projeto utiliza `Microsoft.Data.Sqlite`, com consultas parametrizadas, foreign keys habilitadas em cada conexão e transações para persistir leituras e alertas atomicamente. Sensores com histórico não podem ser removidos (HTTP 409), preservando leituras e alertas.
 
-O schema do banco é criado automaticamente na inicialização via `DatabaseInitializer`, que executa instruções `CREATE TABLE IF NOT EXISTS` — funcionando como um sistema de migrações idempotente.
+O schema é criado por `DatabaseInitializer` com `CREATE TABLE IF NOT EXISTS`, sem recriar bancos existentes. Migrações versionadas serão necessárias para futuras mudanças de schema.
 
 ### Autenticação JWT
-O JWT HS256 é gerado e validado manualmente via `System.Security.Cryptography.HMACSHA256`, sem o pacote `Microsoft.AspNetCore.Authentication.JwtBearer`. O handler customizado `JwtAuthHandler` integra-se nativamente ao pipeline de autenticação do ASP.NET Core 8.
+Os tokens HS256 são emitidos por `System.IdentityModel.Tokens.Jwt` e validados pelo middleware `Microsoft.AspNetCore.Authentication.JwtBearer`, incluindo assinatura, algoritmo, expiração, emissor, audiência, identidade e role. A tolerância de relógio é de 30 segundos.
 
 ### Segurança de Senhas
-As senhas são armazenadas com **PBKDF2-SHA256** (100.000 iterações, salt aleatório de 16 bytes), implementado via `System.Security.Cryptography.Rfc2898DeriveBytes` — sem o pacote BCrypt.Net.
+As senhas usam **PBKDF2-SHA256**, 600.000 iterações e salt aleatório de 16 bytes. Hashes existentes com 100.000 iterações continuam válidos.
 
 ### Paginação
 Todos os endpoints de listagem implementam paginação via `LIMIT/OFFSET` no SQLite, retornando o objeto `PagedResultVM<T>` com `totalCount`, `totalPages`, `hasNextPage` e `hasPreviousPage`.
@@ -211,5 +221,9 @@ Ao registrar uma leitura via `POST /api/WaterReadings`, o sistema compara a vaz�
 | Variável | Padrão | Descrição |
 |---|---|---|
 | `ConnectionStrings__DefaultConnection` | `aquamonitor.db` | Caminho do arquivo SQLite |
-| `Jwt__Key` | (definido em appsettings) | Chave secreta JWT — **alterar em produção** |
+| `Jwt__Key` | obrigatório, sem padrão | Segredo aleatório privado; mínimo 32 bytes UTF-8 |
 | `Jwt__ExpiresInHours` | `8` | Validade do token em horas |
+| `Jwt__Issuer` | `AquaMonitor.API` | Emissor JWT obrigatório |
+| `Jwt__Audience` | `AquaMonitor.Client` | Audiência JWT obrigatória |
+| `BootstrapAdmin__Enabled` | `false` | Bootstrap explícito, somente Development |
+| `Cors__AllowedOrigins__0` | nenhuma | Origem de navegador permitida |

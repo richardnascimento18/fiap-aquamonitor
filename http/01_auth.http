@@ -4,7 +4,7 @@
 # Instruções:
 #   1. Selecione o ambiente "dev" (dotnet run) ou "docker"
 #   2. Execute "Login admin" primeiro para obter o admin_token
-#   3. Copie o valor de "token" da resposta e coloque em .env.json
+#   3. Copie o valor de "token" da resposta e coloque em http-client.private.env.json
 # =============================================================
 
 @base_url = {{base_url}}
@@ -22,19 +22,19 @@ Content-Type: application/json
 
 ### ─────────────────────────────────────────────────────────
 
-### Login — Admin (copie o token para admin_token no .env.json)
+### Login — Admin (copie o token para admin_token no http-client.private.env.json)
 # @name login_admin
 POST {{base_url}}/api/Auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@aquamonitor.com",
-  "password": "Admin@123"
+  "email": "{{admin_email}}",
+  "password": "{{admin_password}}"
 }
 
 ### ─────────────────────────────────────────────────────────
 
-### Login — Usuário comum (copie o token para token no .env.json)
+### Login — Usuário comum (copie o token para token no http-client.private.env.json)
 # @name login_user
 POST {{base_url}}/api/Auth/login
 Content-Type: application/json
@@ -63,7 +63,7 @@ Content-Type: application/json
 
 {
   "name": "Duplicado",
-  "email": "admin@aquamonitor.com",
+  "email": "teste@aquamonitor.com",
   "password": "Senha@123"
 }
 

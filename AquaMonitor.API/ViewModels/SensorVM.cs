@@ -13,6 +13,7 @@ public class CreateSensorVM
     public string Location { get; set; } = string.Empty;
 
     [Range(0.1, 100000, ErrorMessage = "Limite de alerta deve ser entre 0.1 e 100.000 L/h.")]
+    [FiniteNumber]
     public double AlertThresholdLitersPerHour { get; set; } = 500;
 }
 
@@ -25,6 +26,7 @@ public class UpdateSensorVM
     public string? Location { get; set; }
 
     [Range(0.1, 100000)]
+    [FiniteNumber]
     public double? AlertThresholdLitersPerHour { get; set; }
 
     public bool? IsActive { get; set; }
