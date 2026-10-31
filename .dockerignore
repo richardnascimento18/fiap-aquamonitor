@@ -1,0 +1,17 @@
+.git
+.local-work
+.ai
+.agents
+.codex
+.aws
+**/bin
+**/obj
+**/TestResults
+coverage*
+.env
+.env.*
+**/*.db*
+**/*.sqlite*
+**/*.log
+AGENTS.md
+CONTRIBUTING.md

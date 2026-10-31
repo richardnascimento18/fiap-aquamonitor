@@ -1,0 +1,46 @@
+# Local working notes and agent-specific materials
+.local-work/
+.ai/
+.agents/
+.codex/
+AGENTS.md
+CONTRIBUTING.md
+
+# Local environment and private configuration
+.env
+.env.*
+!.env.example
+.aws/
+**/appsettings.Local.json
+
+# .NET build artifacts and IDE settings
+**/bin/
+**/obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.log
+
+# Test and coverage outputs
+TestResults/
+**/TestResults/
+coverage/
+coverage-results/
+
+# Local SQLite files
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Temporary files
+*.tmp
+*~
+.DS_Store
