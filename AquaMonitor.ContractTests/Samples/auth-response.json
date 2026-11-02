@@ -1,0 +1,7 @@
+{
+  "token": "aaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccc",
+  "name": "Pessoa",
+  "email": "user@example.test",
+  "role": "User",
+  "expiresAt": "2025-06-15T12:00:00Z"
+}

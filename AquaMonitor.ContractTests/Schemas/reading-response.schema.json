@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aquamonitor.test/contracts/reading-response.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sensorId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sensorName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sensorLocation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "litersConsumed": {
+      "type": "number",
+      "minimum": 0
+    },
+    "flowRateLitersPerHour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "isAnomaly": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "sensorId",
+    "sensorName",
+    "sensorLocation",
+    "litersConsumed",
+    "flowRateLitersPerHour",
+    "recordedAt",
+    "isAnomaly"
+  ],
+  "additionalProperties": false
+}

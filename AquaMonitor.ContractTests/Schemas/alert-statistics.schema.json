@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aquamonitor.test/contracts/alert-statistics.schema.json",
+  "type": "object",
+  "properties": {
+    "totalAlerts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "openAlerts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "acknowledgedAlerts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resolvedAlerts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "bySeverity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Medium",
+              "High",
+              "Critical"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "severity",
+          "count"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "totalAlerts",
+    "openAlerts",
+    "acknowledgedAlerts",
+    "resolvedAlerts",
+    "bySeverity"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,389 @@
+{
+  "operations": [
+    {
+      "id": "AUTH-01",
+      "method": "POST",
+      "route": "/api/Auth/register",
+      "authorization": "Anonymous",
+      "request": "name, email (valid), password (8..1024); role ignored",
+      "businessRule": "Unique normalized email; creates User; returns token without password",
+      "positive": {
+        "test": "AUTH01_Success",
+        "status": 201,
+        "schema": "auth-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "AUTH01_Failure",
+        "case": "Duplicate registration",
+        "status": 409,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "AUTH-02",
+      "method": "POST",
+      "route": "/api/Auth/login",
+      "authorization": "Anonymous",
+      "request": "email (valid), password (6..1024)",
+      "businessRule": "Valid password required; does not create an account",
+      "positive": {
+        "test": "AUTH02_Success",
+        "status": 200,
+        "schema": "auth-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "AUTH02_Failure",
+        "case": "Invalid credentials",
+        "status": 401,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "SENSOR-01",
+      "method": "GET",
+      "route": "/api/WaterSensors",
+      "authorization": "User/Admin; own records, Admin sees all",
+      "request": "page >= 1; pageSize 1..100",
+      "businessRule": "Ownership-scoped pagination",
+      "positive": {
+        "test": "SENSOR01_Success",
+        "status": 200,
+        "schema": "paged-sensors",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "SENSOR01_Failure",
+        "case": "Invalid pagination",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "SENSOR-02",
+      "method": "GET",
+      "route": "/api/WaterSensors/{id:int}",
+      "authorization": "User/Admin; owner or Admin",
+      "request": "id: integer",
+      "businessRule": "Other users receive 404",
+      "positive": {
+        "test": "SENSOR02_Success",
+        "status": 200,
+        "schema": "sensor-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "SENSOR02_Failure",
+        "case": "Missing sensor",
+        "status": 404,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "SENSOR-03",
+      "method": "POST",
+      "route": "/api/WaterSensors",
+      "authorization": "User/Admin",
+      "request": "name <= 100, location <= 200, threshold 0.1..100000 finite",
+      "businessRule": "Creates active sensor owned by authenticated actor",
+      "positive": {
+        "test": "SENSOR03_Success",
+        "status": 201,
+        "schema": "sensor-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "SENSOR03_Failure",
+        "case": "Invalid threshold",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "SENSOR-04",
+      "method": "PUT",
+      "route": "/api/WaterSensors/{id:int}",
+      "authorization": "User/Admin; owner or Admin",
+      "request": "optional name, location, alertThresholdLitersPerHour, isActive",
+      "businessRule": "Partial update persisted; foreign owner gets 404",
+      "positive": {
+        "test": "SENSOR04_Success",
+        "status": 200,
+        "schema": "sensor-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "SENSOR04_Failure",
+        "case": "Other owner",
+        "status": 404,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "SENSOR-05",
+      "method": "DELETE",
+      "route": "/api/WaterSensors/{id:int}",
+      "authorization": "Admin",
+      "request": "id: integer",
+      "businessRule": "Deletes unused sensor; dependent history produces 409 ProblemDetails",
+      "positive": {
+        "test": "SENSOR05_Success",
+        "status": 204,
+        "schema": null,
+        "emptyBody": true
+      },
+      "negative": {
+        "test": "SENSOR05_Failure",
+        "case": "Ordinary user",
+        "status": 403,
+        "schema": null,
+        "emptyBody": true
+      }
+    },
+    {
+      "id": "READING-01",
+      "method": "GET",
+      "route": "/api/WaterReadings",
+      "authorization": "User/Admin; own sensors or Admin",
+      "request": "sensorId >= 1; from/to; anomaliesOnly; page >= 1; pageSize 1..100",
+      "businessRule": "Filters and ownership scope; invalid period 400",
+      "positive": {
+        "test": "READING01_Success",
+        "status": 200,
+        "schema": "paged-readings",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "READING01_Failure",
+        "case": "Invalid pagination",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "READING-02",
+      "method": "POST",
+      "route": "/api/WaterReadings",
+      "authorization": "User/Admin; owner or Admin",
+      "request": "sensorId >= 1; litersConsumed, flowRateLitersPerHour >= 0 finite; recordedAt optional",
+      "businessRule": "Atomic reading and alert; inactive sensor rejected; foreign sensor empty 403",
+      "positive": {
+        "test": "READING02_Success",
+        "status": 201,
+        "schema": "reading-created",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "READING02_Failure",
+        "case": "Negative measurement",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "READING-03",
+      "method": "GET",
+      "route": "/api/WaterReadings/summary",
+      "authorization": "User/Admin; own sensors or Admin",
+      "request": "from/to; sensorId > 0",
+      "businessRule": "Aggregated liters, m3, average/max flow and anomaly counts",
+      "positive": {
+        "test": "READING03_Success",
+        "status": 200,
+        "schema": "consumption-summary",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "READING03_Failure",
+        "case": "Reversed period",
+        "status": 400,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "ALERT-01",
+      "method": "GET",
+      "route": "/api/LeakAlerts",
+      "authorization": "User/Admin; own sensors or Admin",
+      "request": "sensorId >= 1; status 0..2; severity 1..4; page >= 1; pageSize 1..100",
+      "businessRule": "Scoped filtering and pagination",
+      "positive": {
+        "test": "ALERT01_Success",
+        "status": 200,
+        "schema": "paged-alerts",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "ALERT01_Failure",
+        "case": "Invalid severity",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "ALERT-02",
+      "method": "GET",
+      "route": "/api/LeakAlerts/{id:int}",
+      "authorization": "User/Admin; owner or Admin",
+      "request": "id: integer",
+      "businessRule": "Foreign and missing records hidden as 404",
+      "positive": {
+        "test": "ALERT02_Success",
+        "status": 200,
+        "schema": "alert-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "ALERT02_Failure",
+        "case": "Other owner",
+        "status": 404,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "ALERT-03",
+      "method": "PATCH",
+      "route": "/api/LeakAlerts/{id:int}/status",
+      "authorization": "User/Admin; owner or Admin",
+      "request": "status 0=Open, 1=Acknowledged, 2=Resolved",
+      "businessRule": "Resolution timestamps assigned; reopening clears timestamp",
+      "positive": {
+        "test": "ALERT03_Success",
+        "status": 200,
+        "schema": "alert-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "ALERT03_Failure",
+        "case": "Invalid status",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "ALERT-04",
+      "method": "GET",
+      "route": "/api/LeakAlerts/stats",
+      "authorization": "Admin",
+      "request": "none",
+      "businessRule": "Global totals and severity groups",
+      "positive": {
+        "test": "ALERT04_Success",
+        "status": 200,
+        "schema": "alert-statistics",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "ALERT04_Failure",
+        "case": "Ordinary user",
+        "status": 403,
+        "schema": null,
+        "emptyBody": true
+      }
+    },
+    {
+      "id": "REPORT-01",
+      "method": "GET",
+      "route": "/api/WaterImpactReports",
+      "authorization": "User/Admin; own reports or Admin",
+      "request": "page >= 1; pageSize 1..50",
+      "businessRule": "Scoped pagination",
+      "positive": {
+        "test": "REPORT01_Success",
+        "status": 200,
+        "schema": "paged-reports",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "REPORT01_Failure",
+        "case": "Invalid pagination",
+        "status": 400,
+        "schema": "validation-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "REPORT-02",
+      "method": "GET",
+      "route": "/api/WaterImpactReports/{id:int}",
+      "authorization": "User/Admin; own report or Admin",
+      "request": "id: integer",
+      "businessRule": "Foreign and missing reports hidden as 404",
+      "positive": {
+        "test": "REPORT02_Success",
+        "status": 200,
+        "schema": "report-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "REPORT02_Failure",
+        "case": "Other owner",
+        "status": 404,
+        "schema": "message-error",
+        "emptyBody": false
+      }
+    },
+    {
+      "id": "REPORT-03",
+      "method": "POST",
+      "route": "/api/WaterImpactReports/generate",
+      "authorization": "Admin",
+      "request": "year 2000..2100; month 1..12; mitigationPlan required <= 2000",
+      "businessRule": "Global month totals vs previous month; difference is not attributable environmental saving",
+      "positive": {
+        "test": "REPORT03_Success",
+        "status": 201,
+        "schema": "report-response",
+        "emptyBody": false
+      },
+      "negative": {
+        "test": "REPORT03_Failure",
+        "case": "Ordinary user",
+        "status": 403,
+        "schema": null,
+        "emptyBody": true
+      }
+    },
+    {
+      "id": "REPORT-04",
+      "method": "DELETE",
+      "route": "/api/WaterImpactReports/{id:int}",
+      "authorization": "Admin",
+      "request": "id: integer",
+      "businessRule": "Deletes report; missing record 404",
+      "positive": {
+        "test": "REPORT04_Success",
+        "status": 204,
+        "schema": null,
+        "emptyBody": true
+      },
+      "negative": {
+        "test": "REPORT04_Failure",
+        "case": "Ordinary user",
+        "status": 403,
+        "schema": null,
+        "emptyBody": true
+      }
+    }
+  ],
+  "exclusions": [
+    {
+      "method": "GET",
+      "route": "/",
+      "reason": "Operational API index; not a controller business operation"
+    }
+  ]
+}

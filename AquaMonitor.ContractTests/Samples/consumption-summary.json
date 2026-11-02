@@ -1,0 +1,14 @@
+[
+  {
+    "sensorId": 1,
+    "sensorName": "Reservatório",
+    "location": "Campus",
+    "totalLiters": 100,
+    "totalM3": 0.1,
+    "averageFlowRate": 50,
+    "maxFlowRate": 50,
+    "anomalyCount": 0,
+    "periodStart": "2025-06-15T12:00:00Z",
+    "periodEnd": "2025-06-15T12:00:00Z"
+  }
+]

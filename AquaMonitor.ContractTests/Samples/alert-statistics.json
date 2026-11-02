@@ -1,0 +1,12 @@
+{
+  "totalAlerts": 1,
+  "openAlerts": 1,
+  "acknowledgedAlerts": 0,
+  "resolvedAlerts": 0,
+  "bySeverity": [
+    {
+      "severity": "Critical",
+      "count": 1
+    }
+  ]
+}

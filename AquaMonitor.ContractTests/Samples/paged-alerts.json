@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "message": "Consumo anormal",
+      "severity": "Critical",
+      "status": "Open",
+      "triggerFlowRate": 300,
+      "createdAt": "2025-06-15T12:00:00Z",
+      "resolvedAt": null,
+      "sensorId": 1,
+      "sensorName": "Reservatório",
+      "sensorLocation": "Campus"
+    }
+  ],
+  "page": 1,
+  "pageSize": 10,
+  "totalCount": 1,
+  "totalPages": 1,
+  "hasNextPage": false,
+  "hasPreviousPage": false
+}

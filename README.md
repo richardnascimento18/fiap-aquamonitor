@@ -169,6 +169,8 @@ Domain não depende das demais camadas. Application depende de Domain; Infrastru
 
 ## Como Executar os Testes Unitários
 
+Para executar todas as suites e gerar evidências de BDD e contratos HTTP, consulte [Testes automatizados](docs/testing.md).
+
 ```bash
 cd AquaMonitor.Tests
 dotnet restore   # necessário acesso à internet para baixar xUnit
