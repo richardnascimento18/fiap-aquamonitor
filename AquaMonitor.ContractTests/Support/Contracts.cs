@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Json.Schema;
 
 namespace AquaMonitor.ContractTests.Support;
@@ -63,6 +64,10 @@ public abstract class ContractTest : IAsyncLifetime
         var operation = Inventory.Load().Operations.Single(op => op.Id == coverage.Id);
         var expectation = coverage.Outcome == "positive" ? operation.Positive : operation.Negative;
         Assert.Equal(expectation.Test, test);
+        var request = Assert.IsType<HttpRequestMessage>(response.RequestMessage);
+        Assert.Equal(operation.Method, request.Method.Method);
+        var pathPattern = "^" + Regex.Escape(operation.Route).Replace(Regex.Escape("{id:int}"), @"-?\d+", StringComparison.Ordinal) + "$";
+        Assert.Matches(pathPattern, request.RequestUri!.AbsolutePath);
         Assert.Equal(expectation.Status, (int)response.StatusCode);
         if (expectation.EmptyBody)
             Assert.Equal("", await response.Content.ReadAsStringAsync());
@@ -79,6 +84,8 @@ public abstract class ContractTest : IAsyncLifetime
             operationId = coverage.Id,
             outcome = coverage.Outcome,
             test = $"{GetType().FullName}.{test}",
+            requestMethod = request.Method.Method,
+            requestPath = request.RequestUri.AbsolutePath,
             status = (int)response.StatusCode,
             jsonBodyVerified = !expectation.EmptyBody,
             schema = expectation.Schema,
