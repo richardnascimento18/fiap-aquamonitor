@@ -3,7 +3,6 @@
 import argparse
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 
@@ -21,10 +20,11 @@ for name in ["domain-architecture.trx", "integration.trx", "contracts.trx", "bdd
 (directory / "contracts").mkdir(exist_ok=True)
 for file in (directory / "contracts").glob("*.json"):
     file.unlink()
-bdd_output = ROOT / "AquaMonitor.BddTests/bin/Release/net10.0/TestResults"
-for name in ["bdd.html", "bdd.ndjson"]:
-    (bdd_output / name).unlink(missing_ok=True)
-environment = os.environ | {"AQUA_TEST_RESULTS": str(directory)}
+environment = os.environ | {
+    "AQUA_TEST_RESULTS": str(directory),
+    "REQNROLL_FORMATTERS_HTML": f"outputFilePath={directory / 'bdd.html'}",
+    "REQNROLL_FORMATTERS_MESSAGE": f"outputFilePath={directory / 'bdd.ndjson'}",
+}
 
 
 def run(arguments):
@@ -44,6 +44,4 @@ for name, project, selection in [
     if selection:
         command += ["--filter", selection]
     run(command)
-for name in ["bdd.html", "bdd.ndjson"]:
-    shutil.copy2(bdd_output / name, directory / name)
 run([sys.executable, "scripts/ci/verify-test-evidence.py", str(directory), "--check-rejections"])
