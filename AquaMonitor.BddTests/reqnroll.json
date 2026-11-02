@@ -1,0 +1,8 @@
+{
+  "$schema": "https://schemas.reqnroll.net/reqnroll-config-latest.json",
+  "language": { "feature": "pt-BR", "binding": "pt-BR" },
+  "formatters": {
+    "html": { "outputFilePath": "TestResults/bdd.html" },
+    "message": { "outputFilePath": "TestResults/bdd.ndjson" }
+  }
+}

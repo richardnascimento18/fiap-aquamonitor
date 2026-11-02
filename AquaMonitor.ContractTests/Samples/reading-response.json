@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "sensorId": 1,
+  "sensorName": "Reservatório",
+  "sensorLocation": "Campus",
+  "litersConsumed": 100,
+  "flowRateLitersPerHour": 50,
+  "recordedAt": "2025-06-15T12:00:00Z",
+  "isAnomaly": false
+}
