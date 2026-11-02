@@ -1,4 +1,4 @@
-namespace AquaMonitor.API.Data;
+namespace AquaMonitor.Infrastructure.Persistence;
 
 public interface IDbConnectionFactory
 {

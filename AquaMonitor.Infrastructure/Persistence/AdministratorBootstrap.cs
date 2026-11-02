@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
-namespace AquaMonitor.API.Data;
+namespace AquaMonitor.Infrastructure.Persistence;
 
 public static class AdministratorBootstrap
 {

@@ -1,4 +1,4 @@
-namespace AquaMonitor.API.Models;
+namespace AquaMonitor.Domain.Entities;
 
 public class WaterSensor
 {

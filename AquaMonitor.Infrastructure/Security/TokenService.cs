@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AquaMonitor.API.Services;
+namespace AquaMonitor.Infrastructure.Security;
 
 public interface ITokenService
 {

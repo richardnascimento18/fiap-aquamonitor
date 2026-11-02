@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace AquaMonitor.API.Data;
+namespace AquaMonitor.Infrastructure.Persistence;
 
 /// <summary>
 /// PBKDF2-SHA256 password hashing — zero external dependencies.

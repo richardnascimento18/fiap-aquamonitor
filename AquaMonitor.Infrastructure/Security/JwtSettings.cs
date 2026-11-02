@@ -1,7 +1,9 @@
 using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AquaMonitor.API.Services;
+namespace AquaMonitor.Infrastructure.Security;
 
 public sealed class JwtSettings
 {

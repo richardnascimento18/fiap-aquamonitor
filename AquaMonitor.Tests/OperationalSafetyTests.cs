@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using AquaMonitor.API.Data;
-using AquaMonitor.API.ViewModels;
+using AquaMonitor.Application.Contracts;
+using AquaMonitor.Infrastructure.Persistence;
 
 namespace AquaMonitor.Tests;
 

@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using AquaMonitor.API.Data;
-using AquaMonitor.API.ViewModels;
+using AquaMonitor.Application.Contracts;
+using AquaMonitor.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

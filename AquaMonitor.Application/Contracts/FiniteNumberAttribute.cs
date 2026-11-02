@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace AquaMonitor.API.ViewModels;
+namespace AquaMonitor.Application.Contracts;
 
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class FiniteNumberAttribute : ValidationAttribute

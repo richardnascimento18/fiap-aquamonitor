@@ -11,9 +11,13 @@
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
         }
       },
+      "Microsoft.Bcl.Cryptography": {
+        "type": "Transitive",
+        "resolved": "10.0.2",
+        "contentHash": "LG9Yll3B5aNpxv0+D47g6LiOiKBIlodhcHdQwcYzo8VeexFLGqx5ymetmA2aBRyo9cCcWsQWrFsdbsr8LvmWDw=="
+      },
       "Microsoft.Data.Sqlite": {
-        "type": "Direct",
-        "requested": "[10.0.14, )",
+        "type": "Transitive",
         "resolved": "10.0.14",
         "contentHash": "muyroan6rKrf0omZL8UF7Kw5uOGp/yBg1L/XWvkFN3WhKaNtK2IWqRZw93nIwVqjhTVDO0l4CEGhHIh+mb+sKg==",
         "dependencies": {
@@ -21,11 +25,6 @@
           "SQLitePCLRaw.bundle_e_sqlite3": "2.1.13",
           "SQLitePCLRaw.core": "2.1.13"
         }
-      },
-      "Microsoft.Bcl.Cryptography": {
-        "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "LG9Yll3B5aNpxv0+D47g6LiOiKBIlodhcHdQwcYzo8VeexFLGqx5ymetmA2aBRyo9cCcWsQWrFsdbsr8LvmWDw=="
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
@@ -116,6 +115,24 @@
         "dependencies": {
           "Microsoft.IdentityModel.JsonWebTokens": "8.19.2",
           "Microsoft.IdentityModel.Tokens": "8.19.2"
+        }
+      },
+      "aquamonitor.application": {
+        "type": "Project",
+        "dependencies": {
+          "AquaMonitor.Domain": "[1.0.0, )"
+        }
+      },
+      "aquamonitor.domain": {
+        "type": "Project"
+      },
+      "aquamonitor.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "AquaMonitor.Application": "[1.0.0, )",
+          "AquaMonitor.Domain": "[1.0.0, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.14, )",
+          "Microsoft.Data.Sqlite": "[10.0.14, )"
         }
       }
     }

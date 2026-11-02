@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using AquaMonitor.API.Data;
-using AquaMonitor.API.Services;
-using AquaMonitor.API.ViewModels;
+using AquaMonitor.Application.Contracts;
+using AquaMonitor.Infrastructure.Persistence;
+using AquaMonitor.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AquaMonitor.API.Controllers;

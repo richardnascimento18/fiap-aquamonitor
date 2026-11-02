@@ -1,4 +1,4 @@
-namespace AquaMonitor.API.ViewModels;
+namespace AquaMonitor.Application.Contracts;
 
 public class PagedResultVM<T>
 {

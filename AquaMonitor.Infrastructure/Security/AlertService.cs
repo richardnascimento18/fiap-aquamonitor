@@ -1,7 +1,7 @@
-using AquaMonitor.API.Data;
-using AquaMonitor.API.Models;
+using AquaMonitor.Domain.Entities;
+using AquaMonitor.Infrastructure.Persistence;
 
-namespace AquaMonitor.API.Services;
+namespace AquaMonitor.Infrastructure.Security;
 
 public interface IAlertService
 {

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using AquaMonitor.API.Data;
+using AquaMonitor.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 
 namespace AquaMonitor.Tests;

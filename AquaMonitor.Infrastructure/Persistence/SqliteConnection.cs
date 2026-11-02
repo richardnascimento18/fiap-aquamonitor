@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 using NativeConnection = Microsoft.Data.Sqlite.SqliteConnection;
 
-namespace AquaMonitor.API.Data;
+namespace AquaMonitor.Infrastructure.Persistence;
 
 /// <summary>Small compatibility adapter preserving the existing parameterized SQL API.</summary>
 public sealed class SqliteConnection : IDisposable

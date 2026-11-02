@@ -1,4 +1,4 @@
-namespace AquaMonitor.API.Data;
+namespace AquaMonitor.Infrastructure.Persistence;
 
 /// <summary>
 /// Runs idempotent schema DDL without provisioning accounts.

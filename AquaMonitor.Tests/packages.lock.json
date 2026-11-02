@@ -510,6 +510,25 @@
       "aquamonitor.api": {
         "type": "Project",
         "dependencies": {
+          "AquaMonitor.Application": "[1.0.0, )",
+          "AquaMonitor.Infrastructure": "[1.0.0, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.14, )"
+        }
+      },
+      "aquamonitor.application": {
+        "type": "Project",
+        "dependencies": {
+          "AquaMonitor.Domain": "[1.0.0, )"
+        }
+      },
+      "aquamonitor.domain": {
+        "type": "Project"
+      },
+      "aquamonitor.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "AquaMonitor.Application": "[1.0.0, )",
+          "AquaMonitor.Domain": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.14, )",
           "Microsoft.Data.Sqlite": "[10.0.14, )"
         }

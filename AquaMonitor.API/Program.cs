@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using AquaMonitor.API.Data;
 using AquaMonitor.API.Filters;
-using AquaMonitor.API.Services;
+using AquaMonitor.Infrastructure.Persistence;
+using AquaMonitor.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 

@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace AquaMonitor.API.ViewModels;
+namespace AquaMonitor.Application.Contracts;
 
 public class AlertResponseVM
 {
