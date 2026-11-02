@@ -1,7 +1,13 @@
 using System.Security.Claims;
-using AquaMonitor.API.Data;
 using AquaMonitor.API.Filters;
-using AquaMonitor.API.Services;
+using AquaMonitor.Application.Abstractions;
+using AquaMonitor.Application.Alerts;
+using AquaMonitor.Application.Authentication;
+using AquaMonitor.Application.Readings;
+using AquaMonitor.Application.Reports;
+using AquaMonitor.Application.Sensors;
+using AquaMonitor.Infrastructure.Persistence;
+using AquaMonitor.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -85,8 +91,16 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IWorkSessionFactory, SqliteWorkSessionFactory>();
+builder.Services.AddScoped<SensorService>();
+
 // ── Application Services ──────────────────────────────────
-builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<ReadingService>();
+builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<AlertService>();
 
 // ── Controllers ───────────────────────────────────────────
 builder.Services.AddControllers(o => o.Filters.Add<GlobalExceptionFilter>())

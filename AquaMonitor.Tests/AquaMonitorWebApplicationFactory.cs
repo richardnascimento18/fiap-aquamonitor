@@ -1,4 +1,4 @@
-using AquaMonitor.API.Data;
+using AquaMonitor.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;

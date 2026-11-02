@@ -47,3 +47,6 @@ coverage-results/
 
 # Private HTTP client credentials and tokens
 http/http-client.private.env.json
+
+# Python tooling caches
+__pycache__/
