@@ -1,7 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using AquaMonitor.Application.Contracts;
-using AquaMonitor.Infrastructure.Persistence;
-using AquaMonitor.Infrastructure.Security;
+using AquaMonitor.Application.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AquaMonitor.API.Controllers;
@@ -11,14 +9,8 @@ namespace AquaMonitor.API.Controllers;
 [Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly IDbConnectionFactory _factory;
-    private readonly ITokenService _tokens;
-
-    public AuthController(IDbConnectionFactory factory, ITokenService tokens)
-    {
-        _factory = factory;
-        _tokens = tokens;
-    }
+    private readonly AuthenticationService _authentication;
+    public AuthController(AuthenticationService authentication) => _authentication = authentication;
 
     /// <summary>Registra novo usuario no sistema.</summary>
     [HttpPost("register")]
@@ -27,20 +19,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(409)]
     public IActionResult Register([FromBody] RegisterVM vm)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        using var db = _factory.Create();
-        var exists = db.Query("SELECT 1 FROM Users WHERE Email=@e LIMIT 1",
-            new Dictionary<string, object?> { ["@e"] = vm.Email.ToLowerInvariant() });
-        if (exists.Count > 0) return Conflict(new { message = "E-mail ja cadastrado." });
-
-        var hash = PasswordHelper.HashPassword(vm.Password);
-        db.Execute("INSERT INTO Users (Name,Email,PasswordHash,Role,CreatedAt) VALUES (@n,@e,@h,'User',@c)",
-            new Dictionary<string, object?> { ["@n"] = vm.Name, ["@e"] = vm.Email.ToLowerInvariant(), ["@h"] = hash, ["@c"] = DateTime.UtcNow.ToString("o") });
-        var id = (int)db.LastInsertRowId();
-
-        var token = _tokens.GenerateToken(id, vm.Email, vm.Name, "User");
-        return StatusCode(201, new AuthResponseVM { Token = token, Name = vm.Name, Email = vm.Email.ToLowerInvariant(), Role = "User", ExpiresAt = _tokens.GetExpiration() });
+        return StatusCode(201, _authentication.Register(vm));
     }
 
     /// <summary>Autentica usuario e retorna JWT.</summary>
@@ -49,23 +28,6 @@ public class AuthController : ControllerBase
     [ProducesResponseType(401)]
     public IActionResult Login([FromBody] LoginVM vm)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        using var db = _factory.Create();
-        var rows = db.Query("SELECT Id,Name,Email,PasswordHash,Role FROM Users WHERE Email=@e LIMIT 1",
-            new Dictionary<string, object?> { ["@e"] = vm.Email.ToLowerInvariant() });
-        if (rows.Count == 0) return Unauthorized(new { message = "Credenciais invalidas." });
-
-        var row = rows[0];
-        var hash = row["PasswordHash"]?.ToString() ?? "";
-        if (!PasswordHelper.VerifyPassword(vm.Password, hash)) return Unauthorized(new { message = "Credenciais invalidas." });
-
-        var id = (int)(long)row["Id"]!;
-        var name = row["Name"]?.ToString() ?? "";
-        var email = row["Email"]?.ToString() ?? "";
-        var role = row["Role"]?.ToString() ?? "User";
-
-        var token = _tokens.GenerateToken(id, email, name, role);
-        return Ok(new AuthResponseVM { Token = token, Name = name, Email = email, Role = role, ExpiresAt = _tokens.GetExpiration() });
+        return Ok(_authentication.Login(vm));
     }
 }

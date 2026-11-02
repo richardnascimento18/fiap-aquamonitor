@@ -30,6 +30,22 @@ public class ArchitectureTests
         Assert.NotEqual(typeof(WaterSensor).Assembly, typeof(SensorResponseVM).Assembly);
     }
 
+    [Theory]
+    [InlineData("AquaMonitor.API/Controllers")]
+    [InlineData("AquaMonitor.Application")]
+    public void RequestHandling_DoesNotExecuteSqlOrReferencePersistence(string directory)
+    {
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(SourceRoot, directory), "*.cs", SearchOption.AllDirectories)
+            .Where(file => !file.Split(Path.DirectorySeparatorChar).Any(part => part is "obj" or "bin")))
+        {
+            var source = File.ReadAllText(file);
+            Assert.DoesNotMatch(@"\b(SELECT|INSERT|UPDATE|DELETE|PRAGMA|CREATE TABLE)\b", source);
+            Assert.DoesNotContain("Sqlite", source, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("AquaMonitor.Infrastructure", source);
+            Assert.DoesNotContain("IDbConnection", source);
+        }
+    }
+
     internal static string SourceRoot
     {
         get

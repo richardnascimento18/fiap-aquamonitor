@@ -1,3 +1,4 @@
+using AquaMonitor.Application.Abstractions;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -5,15 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AquaMonitor.Infrastructure.Security;
 
-public interface ITokenService
+public sealed class TokenService(JwtSettings settings, TimeProvider time) : ITokenService
 {
-    string GenerateToken(int userId, string email, string name, string role);
-    DateTime GetExpiration();
-}
-
-public sealed class TokenService(JwtSettings settings) : ITokenService
-{
-    public DateTime GetExpiration() => DateTime.UtcNow.AddHours(settings.ExpiresInHours);
+    public DateTime GetExpiration() => time.GetUtcNow().UtcDateTime.AddHours(settings.ExpiresInHours);
 
     public string GenerateToken(int userId, string email, string name, string role)
     {
@@ -26,7 +21,7 @@ public sealed class TokenService(JwtSettings settings) : ITokenService
                 new Claim("email", email), new Claim("name", name), new Claim("role", role),
                 new Claim("jti", Guid.NewGuid().ToString())
             },
-            notBefore: DateTime.UtcNow,
+            notBefore: time.GetUtcNow().UtcDateTime,
             expires: GetExpiration(),
             signingCredentials: new SigningCredentials(settings.SigningKey, SecurityAlgorithms.HmacSha256));
         return new JwtSecurityTokenHandler().WriteToken(token);

@@ -1,3 +1,4 @@
+using AquaMonitor.Application.Authentication;
 using AquaMonitor.Application.Reports;
 using AquaMonitor.Application.Alerts;
 using AquaMonitor.Application.Readings;
@@ -96,6 +97,8 @@ builder.Services.AddScoped<SensorService>();
 
 // ── Application Services ──────────────────────────────────
 builder.Services.AddScoped<ReadingService>();
+builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<AlertService>();
 

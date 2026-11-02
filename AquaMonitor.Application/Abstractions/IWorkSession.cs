@@ -4,6 +4,7 @@ namespace AquaMonitor.Application.Abstractions;
 public interface IWorkSession : IDisposable
 {
     IReportRepository Reports { get; }
+    IUserRepository Users { get; }
     ISensorRepository Sensors { get; }
     IReadingRepository Readings { get; }
     IAlertRepository Alerts { get; }
