@@ -5,6 +5,7 @@ using AquaMonitor.Infrastructure.Persistence;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Application")]
 public class ApplicationServiceTests
 {
     [Fact]

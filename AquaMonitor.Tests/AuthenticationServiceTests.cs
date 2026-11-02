@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Application")]
 public class AuthenticationServiceTests
 {
     [Fact]
@@ -44,7 +45,10 @@ public class AuthenticationServiceTests
     {
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Jwt:Key"] = AquaMonitorWebApplicationFactory.TestKey, ["Jwt:Issuer"] = "Tests", ["Jwt:Audience"] = "Tests", ["Jwt:ExpiresInHours"] = "8"
+            ["Jwt:Key"] = AquaMonitorWebApplicationFactory.TestKey,
+            ["Jwt:Issuer"] = "Tests",
+            ["Jwt:Audience"] = "Tests",
+            ["Jwt:ExpiresInHours"] = "8"
         }).Build();
         return new(database.Sessions, new PasswordHasher(), new TokenService(new JwtSettings(configuration), database.Clock), database.Clock);
     }

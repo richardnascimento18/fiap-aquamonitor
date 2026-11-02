@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Integration")]
 public class AdministratorProvisioningTests
 {
     [Fact]

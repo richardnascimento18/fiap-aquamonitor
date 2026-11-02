@@ -10,6 +10,7 @@ using Microsoft.Extensions.FileProviders;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Integration")]
 public class SecurityConfigurationTests
 {
     [Theory]

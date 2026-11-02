@@ -6,6 +6,7 @@ using Xunit;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Integration")]
 public class WaterReadingsControllerTests : IClassFixture<AquaMonitorWebApplicationFactory>
 {
     private readonly HttpClient _client;

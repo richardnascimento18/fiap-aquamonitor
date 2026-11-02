@@ -4,6 +4,7 @@ using System.Text.Json;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Integration")]
 public class ApiCompatibilityTests
 {
     [Fact]

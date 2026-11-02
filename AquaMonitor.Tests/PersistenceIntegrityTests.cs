@@ -6,6 +6,7 @@ using AquaMonitor.Infrastructure.Persistence;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Integration")]
 public class PersistenceIntegrityTests
 {
     [Fact]

@@ -6,6 +6,7 @@ using AquaMonitor.Domain.Rules;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Application")]
 public class ReadingServiceTests
 {
     [Fact]

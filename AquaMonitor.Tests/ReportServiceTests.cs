@@ -6,6 +6,7 @@ using AquaMonitor.Application.Sensors;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Application")]
 public class ReportServiceTests
 {
     [Fact]

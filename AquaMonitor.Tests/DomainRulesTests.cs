@@ -2,6 +2,7 @@ using AquaMonitor.Domain.Rules;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Domain")]
 public class DomainRulesTests
 {
     [Theory]
@@ -126,6 +127,7 @@ public class DomainRulesTests
         => Assert.Throws<DomainRuleException>(() => new ReportingPeriod(year, month));
 }
 
+[Trait("Category", "Domain")]
 public class SensorEntityTests
 {
     [Theory]

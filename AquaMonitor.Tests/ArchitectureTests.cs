@@ -4,6 +4,7 @@ using AquaMonitor.Domain.Entities;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Architecture")]
 public class ArchitectureTests
 {
     [Theory]

@@ -3,6 +3,7 @@ using AquaMonitor.Infrastructure.Persistence;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Migration")]
 public class MigrationTests
 {
     [Fact]
@@ -73,7 +74,9 @@ public class MigrationTests
     }
 
     [Theory]
-    [InlineData(-1)] [InlineData(2)] [InlineData(999)]
+    [InlineData(-1)]
+    [InlineData(2)]
+    [InlineData(999)]
     public void UnsupportedVersion_IsRejected(int version)
     {
         using var database = new MigrationDatabase();

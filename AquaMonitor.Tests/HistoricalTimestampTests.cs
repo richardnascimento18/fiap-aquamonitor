@@ -6,6 +6,7 @@ using AquaMonitor.Application.Sensors;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Persistence")]
 public class HistoricalTimestampTests
 {
     [Theory]
