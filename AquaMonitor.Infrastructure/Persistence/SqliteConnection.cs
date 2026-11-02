@@ -21,6 +21,7 @@ public sealed class SqliteConnection : IDisposable
         settings.Pooling = false;
         settings.DefaultTimeout = 30;
         _connection = new NativeConnection(settings.ToString());
+        _connection.CreateFunction<string?, long?>("utc_ticks", value => value is null ? null : DbValues.Timestamp(value).Ticks, isDeterministic: true);
         try { _connection.Open(); }
         catch { _connection.Dispose(); throw; }
     }
@@ -51,7 +52,7 @@ public sealed class SqliteConnection : IDisposable
     public T InTransaction<T>(Func<T> operation)
     {
         if (_transaction is not null) throw new InvalidOperationException("Nested transactions are not supported.");
-        using var transaction = _connection.BeginTransaction();
+        using var transaction = _connection.BeginTransaction(deferred: false);
         _transaction = transaction;
         try
         {

@@ -38,7 +38,7 @@ internal sealed class SqliteReportRepository(SqliteConnection db) : IReportRepos
         var p = new Dictionary<string, object?> { ["@uid"] = actor.UserId, ["@limit"] = pageSize, ["@offset"] = ((long)page - 1) * pageSize };
 
         var total = (int)(long)db.Query($"SELECT COUNT(*) c FROM WaterImpactReports r {filter}", p)[0]["c"]!;
-        var rows = db.Query($"{SelectReports} {filter} ORDER BY r.GeneratedAt DESC LIMIT @limit OFFSET @offset", p);
+        var rows = db.Query($"{SelectReports} {filter} ORDER BY utc_ticks(r.GeneratedAt) DESC, r.Id DESC LIMIT @limit OFFSET @offset", p);
 
         return new PagedResultVM<ReportResponseVM>
         { Data = rows.Select(MapReport).ToArray(), Page = page, PageSize = pageSize, TotalCount = total };
@@ -55,11 +55,11 @@ internal sealed class SqliteReportRepository(SqliteConnection db) : IReportRepos
     }
     public ReportTotals Totals(ReportingPeriod period)
     {
-        var p = new Dictionary<string, object?> { ["@s"] = period.Start.ToString("o"), ["@e"] = period.EndExclusive.AddTicks(-1).ToString("o"), ["@ps"] = period.PreviousStart.ToString("o") };
-        var current = Convert.ToDouble(db.Query("SELECT COALESCE(SUM(LitersConsumed),0.0) v FROM WaterReadings WHERE RecordedAt>=@s AND RecordedAt<=@e", p)[0]["v"]);
-        var previous = Convert.ToDouble(db.Query("SELECT COALESCE(SUM(LitersConsumed),0.0) v FROM WaterReadings WHERE RecordedAt>=@ps AND RecordedAt<@s", p)[0]["v"]);
-        var detected = (int)(long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE CreatedAt>=@s AND CreatedAt<=@e", p)[0]["c"]!;
-        var resolved = (int)(long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE ResolvedAt>=@s AND ResolvedAt<=@e", p)[0]["c"]!;
+        var p = new Dictionary<string, object?> { ["@s"] = period.Start.Ticks, ["@e"] = period.EndExclusive.Ticks, ["@ps"] = period.PreviousStart.Ticks };
+        var current = Convert.ToDouble(db.Query("SELECT COALESCE(SUM(LitersConsumed),0.0) v FROM WaterReadings WHERE utc_ticks(RecordedAt)>=@s AND utc_ticks(RecordedAt)<@e", p)[0]["v"]);
+        var previous = Convert.ToDouble(db.Query("SELECT COALESCE(SUM(LitersConsumed),0.0) v FROM WaterReadings WHERE utc_ticks(RecordedAt)>=@ps AND utc_ticks(RecordedAt)<@s", p)[0]["v"]);
+        var detected = (int)(long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE utc_ticks(CreatedAt)>=@s AND utc_ticks(CreatedAt)<@e", p)[0]["c"]!;
+        var resolved = (int)(long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE utc_ticks(ResolvedAt)>=@s AND utc_ticks(ResolvedAt)<@e", p)[0]["c"]!;
         return new(current, previous, detected, resolved);
     }
     public int Insert(Actor actor, GenerateReportVM request, string title, ImpactCalculation impact, ReportTotals totals, DateTime utcNow)

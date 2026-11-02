@@ -43,7 +43,7 @@ internal sealed class SqliteAlertRepository(SqliteConnection db) : IAlertReposit
 
         var wClause = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
         var total = (int)(long)db.Query($"SELECT COUNT(*) c FROM LeakAlerts a JOIN WaterSensors s ON s.Id=a.SensorId {wClause}", p)[0]["c"]!;
-        var rows = db.Query($"{SelectAlerts} {wClause} ORDER BY a.CreatedAt DESC LIMIT @limit OFFSET @offset", p);
+        var rows = db.Query($"{SelectAlerts} {wClause} ORDER BY utc_ticks(a.CreatedAt) DESC, a.Id DESC LIMIT @limit OFFSET @offset", p);
 
         return new PagedResultVM<AlertResponseVM>
         { Data = rows.Select(MapAlert).ToArray(), Page = filter.Page, PageSize = filter.PageSize, TotalCount = total };
