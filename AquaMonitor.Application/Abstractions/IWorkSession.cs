@@ -4,6 +4,8 @@ namespace AquaMonitor.Application.Abstractions;
 public interface IWorkSession : IDisposable
 {
     ISensorRepository Sensors { get; }
+    IReadingRepository Readings { get; }
+    IAlertRepository Alerts { get; }
     T InTransaction<T>(Func<T> operation);
 }
 
