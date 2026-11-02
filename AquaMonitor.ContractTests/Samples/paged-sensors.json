@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Reservatório",
+      "location": "Campus",
+      "alertThresholdLitersPerHour": 100,
+      "isActive": true,
+      "installedAt": "2025-06-15T12:00:00Z",
+      "userId": 1,
+      "userName": "Pessoa",
+      "totalReadings": 1,
+      "openAlerts": 0
+    }
+  ],
+  "page": 1,
+  "pageSize": 10,
+  "totalCount": 1,
+  "totalPages": 1,
+  "hasNextPage": false,
+  "hasPreviousPage": false
+}

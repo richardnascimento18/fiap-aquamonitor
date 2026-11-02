@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "title": "Impacto hídrico",
+  "year": 2025,
+  "month": 6,
+  "totalConsumptionM3": 1,
+  "savedWaterM3": 0.5,
+  "leaksDetected": 1,
+  "leaksResolved": 0,
+  "reductionPercent": 33.33,
+  "mitigationPlan": "Inspecionar",
+  "generatedAt": "2025-06-15T12:00:00Z",
+  "generatedByUser": "Administrador"
+}

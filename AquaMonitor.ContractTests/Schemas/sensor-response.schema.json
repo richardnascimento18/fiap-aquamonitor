@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aquamonitor.test/contracts/sensor-response.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "location": {
+      "type": "string",
+      "minLength": 1
+    },
+    "alertThresholdLitersPerHour": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 100000
+    },
+    "isActive": {
+      "type": "boolean"
+    },
+    "installedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "userId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "userName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "totalReadings": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "openAlerts": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "location",
+    "alertThresholdLitersPerHour",
+    "isActive",
+    "installedAt",
+    "userId",
+    "userName",
+    "totalReadings",
+    "openAlerts"
+  ],
+  "additionalProperties": false
+}

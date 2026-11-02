@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aquamonitor.test/contracts/consumption-summary.schema.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "sensorId": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "sensorName": {
+        "type": "string",
+        "minLength": 1
+      },
+      "location": {
+        "type": "string",
+        "minLength": 1
+      },
+      "totalLiters": {
+        "type": "number",
+        "minimum": 0
+      },
+      "totalM3": {
+        "type": "number",
+        "minimum": 0
+      },
+      "averageFlowRate": {
+        "type": "number",
+        "minimum": 0
+      },
+      "maxFlowRate": {
+        "type": "number",
+        "minimum": 0
+      },
+      "anomalyCount": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "periodStart": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "periodEnd": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "sensorId",
+      "sensorName",
+      "location",
+      "totalLiters",
+      "totalM3",
+      "averageFlowRate",
+      "maxFlowRate",
+      "anomalyCount",
+      "periodStart",
+      "periodEnd"
+    ],
+    "additionalProperties": false
+  }
+}

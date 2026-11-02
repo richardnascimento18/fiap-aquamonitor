@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aquamonitor.test/contracts/reading-created.schema.json",
+  "type": "object",
+  "properties": {
+    "readingId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "alertGenerated": {
+      "type": "boolean"
+    },
+    "alertId": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    }
+  },
+  "required": [
+    "readingId",
+    "alertGenerated",
+    "alertId"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "alertGenerated": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "alertId": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "alertId": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -31,6 +31,7 @@ public sealed class ApiScenario : WebApplicationFactory<Program>
             ["Jwt:Key"] = SigningKey,
             ["Jwt:Issuer"] = "AquaMonitor.Verification",
             ["Jwt:Audience"] = "AquaMonitor.Verification.Client",
+            ["Jwt:ExpiresInHours"] = "8",
             ["BootstrapAdmin:Enabled"] = "false"
         }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
@@ -89,7 +90,10 @@ public sealed class ApiScenario : WebApplicationFactory<Program>
     }
 
     public static async Task<JsonElement> Json(HttpResponseMessage response)
-        => await response.Content.ReadFromJsonAsync<JsonElement>();
+    {
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return document.RootElement.Clone();
+    }
 
     public static async Task<int> Sensor(HttpClient client, double threshold = 100)
     {
