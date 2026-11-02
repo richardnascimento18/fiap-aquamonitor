@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **ASP.NET Core 8**, com controllers e DTOs, endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
+O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **ASP.NET Core 10**, com controllers e DTOs, endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
 
 O sistema permite que empresas e instituições registrem sensores de medição hídrica, coletem leituras de consumo em tempo real, recebam alertas automáticos quando a vazão ultrapassa limites configurados e gerem relatórios de impacto ambiental com planos de mitigação.
 
@@ -12,7 +12,7 @@ O sistema permite que empresas e instituições registrem sensores de medição 
 
 | Ferramenta | Versão mínima |
 |---|---|
-| .NET SDK | 8.0.427 (conforme `global.json`) |
+| .NET SDK | 10.0.403 (conforme `global.json`) |
 | Docker (opcional) | 20.x |
 
 > As dependências de autenticação, SQLite e testes são restauradas pelo NuGet. O driver `Microsoft.Data.Sqlite` inclui a biblioteca nativa SQLite para as plataformas suportadas.
@@ -84,32 +84,17 @@ O container usa `Production`, porta 8080 e usuário sem privilégios. Volumes vi
 
 ```
 AquaMonitor/
-├── AquaMonitor.API/
-│   ├── Controllers/        # Endpoints HTTP da API
-│   │   ├── AuthController.cs
-│   │   ├── WaterSensorsController.cs
-│   │   ├── WaterReadingsController.cs
-│   │   ├── LeakAlertsController.cs
-│   │   └── WaterImpactReportsController.cs
-│   ├── ViewModels/         # DTOs de entrada e saída
-│   ├── Models/             # Modelos de dados
-│   ├── Services/           # Lógica de negócios (TokenService, AlertService)
-│   ├── Data/               # Infraestrutura de dados
-│   │   ├── SqliteConnection.cs       # Adaptador Microsoft.Data.Sqlite com transações
-│   │   ├── SqliteConnectionFactory.cs
-│   │   ├── DatabaseInitializer.cs    # Schema DDL idempotente
-│   │   └── PasswordHelper.cs         # PBKDF2-SHA256, compatível com hashes existentes
-│   ├── Filters/
-│   │   └── GlobalExceptionFilter.cs  # Tratamento centralizado de exceções
-│   └── Program.cs
-├── AquaMonitor.Tests/
-│   ├── AuthControllerTests.cs
-│   ├── WaterSensorsControllerTests.cs
-│   ├── WaterReadingsControllerTests.cs
-│   ├── LeakAlertsControllerTests.cs
-│   └── WaterImpactReportsControllerTests.cs
+├── AquaMonitor.API/             # Controllers HTTP, autenticação e composição de DI
+├── AquaMonitor.Application/     # Casos de uso, contratos e interfaces de persistência
+├── AquaMonitor.Domain/          # Entidades e regras de sensores, alertas e cálculos
+├── AquaMonitor.Infrastructure/  # Repositórios SQLite, migrações, senhas e JWT
+├── AquaMonitor.Tests/           # Regras, serviços, HTTP, SQLite e arquitetura
+├── scripts/ci/                  # Verificação compartilhada do container
+├── AquaMonitor.sln
 └── Dockerfile
 ```
+
+Domain não depende das demais camadas. Application depende de Domain; Infrastructure implementa suas interfaces. A API registra as dependências e adapta HTTP aos serviços da aplicação.
 
 ---
 
@@ -190,7 +175,7 @@ dotnet restore   # necessário acesso à internet para baixar xUnit
 dotnet test
 ```
 
-Os testes utilizam **WebApplicationFactory** com banco de dados SQLite isolado por execução, garantindo independência entre os testes. Cada controller possui ao menos um teste que valida o **status code 200**, conforme exigido pela especificação.
+Os testes de domínio são independentes de HTTP e SQLite. Os testes de serviços, persistência e migrações usam bancos isolados; os testes HTTP usam **WebApplicationFactory**. Testes de arquitetura verificam as dependências e impedem SQL em controllers e serviços da aplicação.
 
 
 ---
@@ -200,7 +185,7 @@ Os testes utilizam **WebApplicationFactory** com banco de dados SQLite isolado p
 ### Banco de Dados
 O projeto utiliza `Microsoft.Data.Sqlite`, com consultas parametrizadas, foreign keys habilitadas em cada conexão e transações para persistir leituras e alertas atomicamente. Sensores com histórico não podem ser removidos (HTTP 409), preservando leituras e alertas.
 
-O schema é criado por `DatabaseInitializer` com `CREATE TABLE IF NOT EXISTS`, sem recriar bancos existentes. Migrações versionadas serão necessárias para futuras mudanças de schema.
+O schema usa migrações SQL versionadas e transacionais, com versão em `PRAGMA user_version`. Bancos anteriores são adotados somente após validação do schema completo e integridade referencial. Consulte [backup e recuperação](docs/database-operations.md) antes de atualizar uma instalação existente.
 
 ### Autenticação JWT
 Os tokens HS256 são emitidos por `System.IdentityModel.Tokens.Jwt` e validados pelo middleware `Microsoft.AspNetCore.Authentication.JwtBearer`, incluindo assinatura, algoritmo, expiração, emissor, audiência, identidade e role. A tolerância de relógio é de 30 segundos.

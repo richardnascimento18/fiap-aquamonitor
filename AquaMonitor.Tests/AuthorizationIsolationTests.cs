@@ -2,10 +2,11 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using AquaMonitor.API.Data;
+using AquaMonitor.Infrastructure.Persistence;
 
 namespace AquaMonitor.Tests;
 
+[Trait("Category", "Integration")]
 public class AuthorizationIsolationTests
 {
     [Fact]
