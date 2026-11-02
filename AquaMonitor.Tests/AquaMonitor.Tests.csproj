@@ -17,4 +17,5 @@
   <ItemGroup>
     <ProjectReference Include="../AquaMonitor.API/AquaMonitor.API.csproj" />
   </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Fixtures/*.sql" /></ItemGroup>
 </Project>
