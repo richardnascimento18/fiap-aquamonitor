@@ -1,3 +1,5 @@
+using AquaMonitor.Application.Abstractions;
+using System.ComponentModel.DataAnnotations;
 using AquaMonitor.Domain.Rules;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -10,6 +12,19 @@ public class GlobalExceptionFilter : IExceptionFilter
     public GlobalExceptionFilter(ILogger<GlobalExceptionFilter> logger) => _logger = logger;
     public void OnException(ExceptionContext context)
     {
+        if (context.Exception is ApplicationFailure failure)
+        {
+            context.Result = failure.PublicMessage is null ? new StatusCodeResult(failure.StatusCode)
+                : new ObjectResult(new { message = failure.PublicMessage }) { StatusCode = failure.StatusCode };
+            context.ExceptionHandled = true;
+            return;
+        }
+        if (context.Exception is ValidationException validation)
+        {
+            context.Result = new BadRequestObjectResult(new { message = "Dados invalidos.", errors = new[] { validation.Message } });
+            context.ExceptionHandled = true;
+            return;
+        }
         if (context.Exception is DomainRuleException domain)
         {
             context.Result = new BadRequestObjectResult(new { message = domain.Message });

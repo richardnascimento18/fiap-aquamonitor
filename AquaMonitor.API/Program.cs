@@ -1,3 +1,5 @@
+using AquaMonitor.Application.Abstractions;
+using AquaMonitor.Application.Sensors;
 using System.Security.Claims;
 using AquaMonitor.API.Filters;
 using AquaMonitor.Infrastructure.Persistence;
@@ -84,6 +86,10 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
         };
     });
 builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IWorkSessionFactory, SqliteWorkSessionFactory>();
+builder.Services.AddScoped<SensorService>();
 
 // ── Application Services ──────────────────────────────────
 builder.Services.AddScoped<IAlertService, AlertService>();
