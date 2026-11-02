@@ -2,7 +2,7 @@
   "suites": {
     "domain-architecture": 63,
     "integration": 139,
-    "contracts": 94,
+    "contracts": 96,
     "bdd": 12
   },
   "schemas": 15,

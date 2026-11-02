@@ -118,13 +118,14 @@ public class AlertContracts : ContractTest
     }
 
     [Theory]
-    [InlineData(99999)]
-    [InlineData(1)]
-    public async Task MissingOrForeignAlert_CannotChangeStatus(int requestedId)
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MissingOrForeignAlert_CannotChangeStatus(bool missing)
     {
         using var owner = await App.User();
         using var other = await App.User("other@example.test");
         var id = await ApiScenario.Alert(owner, await ApiScenario.Sensor(owner));
+        var requestedId = missing ? 99999 : id;
         using var response = await other.PatchAsJsonAsync($"/api/LeakAlerts/{requestedId}/status", new { status = 2 });
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Schemas.AssertValid("message-error", await Body(response));
