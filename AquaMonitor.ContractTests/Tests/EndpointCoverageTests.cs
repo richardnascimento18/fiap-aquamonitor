@@ -1,7 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AquaMonitor.ContractTests.Tests;
@@ -10,18 +10,28 @@ namespace AquaMonitor.ContractTests.Tests;
 public class EndpointCoverageTests
 {
     [Fact]
-    public void RuntimeOperations_MatchInventory_AndHaveExecutablePositiveAndNegativeContracts()
+    public async Task RuntimeOperations_MatchInventory_AndHaveExecutablePositiveAndNegativeContracts()
     {
         using var app = new ApiScenario();
         using var client = app.Client();
-        var descriptions = app.Services.GetRequiredService<IApiDescriptionGroupCollectionProvider>()
-            .ApiDescriptionGroups.Items.SelectMany(group => group.Items)
-            .Where(api => api.ActionDescriptor is ControllerActionDescriptor)
-            .ToArray();
-        var discovered = descriptions.Select(api => $"{api.HttpMethod} /{((ControllerActionDescriptor)api.ActionDescriptor).AttributeRouteInfo!.Template}").Order().ToArray();
+        using var index = await client.GetAsync("/"); // Materialize routing before inspecting all endpoints.
+        Assert.Equal(HttpStatusCode.OK, index.StatusCode);
+        var routes = app.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
+            .SelectMany(endpoint => (endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? [])
+                .Select(method => new
+                {
+                    Method = method,
+                    Route = "/" + endpoint.RoutePattern.RawText!.TrimStart('/'),
+                    Action = endpoint.Metadata.GetMetadata<ControllerActionDescriptor>()
+                })).ToArray();
+        var descriptions = routes.Where(route => route.Action is not null).ToArray();
+        var discovered = descriptions.Select(api => $"{api.Method} {api.Route}").Order().ToArray();
         var inventory = Inventory.Load();
         Assert.Equal(inventory.Operations.Length, inventory.Operations.Select(op => op.Id).Distinct().Count());
         Assert.Equal(inventory.Operations.Select(op => $"{op.Method} {op.Route}").Order(), discovered);
+        Assert.All(inventory.Exclusions, exclusion => Assert.False(string.IsNullOrWhiteSpace(exclusion.Reason)));
+        Assert.Equal(inventory.Exclusions.Select(op => $"{op.Method} {op.Route}").Order(),
+            routes.Where(route => route.Action is null).Select(route => $"{route.Method} {route.Route}").Order());
 
         var methods = typeof(EndpointCoverageTests).Assembly.GetTypes().SelectMany(type => type.GetMethods())
             .Select(method => (Method: method, Coverage: method.GetCustomAttribute<OperationAttribute>()))
@@ -31,9 +41,8 @@ public class EndpointCoverageTests
         var manifest = new List<object>();
         foreach (var operation in inventory.Operations)
         {
-            var api = Assert.Single(descriptions, api => api.HttpMethod == operation.Method &&
-                "/" + ((ControllerActionDescriptor)api.ActionDescriptor).AttributeRouteInfo!.Template == operation.Route);
-            var action = (ControllerActionDescriptor)api.ActionDescriptor;
+            var api = Assert.Single(descriptions, api => api.Method == operation.Method && api.Route == operation.Route);
+            var action = api.Action!;
             var authorization = action.ControllerTypeInfo.GetCustomAttributes<AuthorizeAttribute>()
                 .Concat(action.MethodInfo.GetCustomAttributes<AuthorizeAttribute>()).ToArray();
             if (operation.Authorization == "Anonymous") Assert.Empty(authorization);

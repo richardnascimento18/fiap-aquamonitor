@@ -42,7 +42,8 @@ public sealed class OperationAttribute(string id, string outcome) : FactAttribut
 
 public sealed record Expectation(string Test, int Status, string? Schema, bool EmptyBody);
 public sealed record Operation(string Id, string Method, string Route, string Authorization, Expectation Positive, Expectation Negative);
-public sealed record Inventory(Operation[] Operations)
+public sealed record ExcludedOperation(string Method, string Route, string Reason);
+public sealed record Inventory(Operation[] Operations, ExcludedOperation[] Exclusions)
 {
     public static Inventory Load() => JsonSerializer.Deserialize<Inventory>(
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "endpoint-coverage.json")), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
