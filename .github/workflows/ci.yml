@@ -43,8 +43,8 @@ jobs:
         with:
           name: dependency-audit
           path: TestResults/dependency-audit.json
-          if-no-files-found: warn
-          retention-days: 14
+          if-no-files-found: error
+          retention-days: 60
       - name: Verify formatting and analyzer fixes
         run: dotnet format AquaMonitor.sln --verify-no-changes --no-restore --severity warn
 
@@ -63,18 +63,16 @@ jobs:
           cache-dependency-path: '**/packages.lock.json'
       - run: dotnet restore AquaMonitor.sln --locked-mode
       - run: dotnet build AquaMonitor.sln --configuration Release --no-restore --warnaserror
-      - name: Domain and architecture tests
-        run: dotnet test AquaMonitor.sln --configuration Release --no-build --filter "Category=Domain|Category=Architecture" --logger "trx;LogFileName=unit.trx" --results-directory TestResults
-      - name: Application, HTTP, SQLite, and migration regressions
-        run: dotnet test AquaMonitor.sln --configuration Release --no-build --filter "Category!=Domain&Category!=Architecture" --logger "trx;LogFileName=integration.trx" --results-directory TestResults
-      - name: Upload test results
+      - name: Regressions, API contracts, endpoint coverage, and Portuguese BDD
+        run: python3 scripts/verify-tests.py --no-build
+      - name: Upload test and behavioral evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-results
-          path: TestResults/**/*.trx
-          if-no-files-found: warn
-          retention-days: 14
+          path: TestResults/
+          if-no-files-found: error
+          retention-days: 60
 
   docker-smoke:
     name: docker-smoke
