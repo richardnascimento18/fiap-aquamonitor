@@ -48,5 +48,18 @@ public class ApiCompatibilityTests
         Assert.Equal("Sensor nao encontrado.", (await missing.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("message").GetString());
     }
 
+    [Fact]
+    public async Task ForbiddenReading_KeepsEmptyResponseBody()
+    {
+        using var factory = new AquaMonitorWebApplicationFactory();
+        using var owner = factory.CreateClient();
+        using var other = factory.CreateClient();
+        var id = await PersistenceIntegrityTests.CreateSensor(owner);
+        await PersistenceIntegrityTests.CreateSensor(other, "other@test.com");
+        var response = await other.PostAsJsonAsync("/api/WaterReadings", new { sensorId = id, litersConsumed = 1, flowRateLitersPerHour = 1 });
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Empty(await response.Content.ReadAsStringAsync());
+    }
+
     private static string[] Keys(JsonElement value) => value.EnumerateObject().Select(p => p.Name).Order().ToArray();
 }

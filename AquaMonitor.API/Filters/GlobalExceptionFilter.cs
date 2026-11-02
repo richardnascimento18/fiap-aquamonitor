@@ -14,7 +14,12 @@ public class GlobalExceptionFilter : IExceptionFilter
     {
         if (context.Exception is ApplicationFailure failure)
         {
-            context.Result = failure.PublicMessage is null ? new StatusCodeResult(failure.StatusCode)
+            context.Result = failure.PublicMessage is null ? failure.StatusCode switch
+            {
+                403 => new ForbidResult(),
+                401 => new ChallengeResult(),
+                _ => new StatusCodeResult(failure.StatusCode)
+            }
                 : new ObjectResult(new { message = failure.PublicMessage }) { StatusCode = failure.StatusCode };
             context.ExceptionHandled = true;
             return;
