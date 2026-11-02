@@ -10,6 +10,7 @@ public sealed class SqliteWorkSessionFactory(IDbConnectionFactory connections) :
 
 internal sealed class SqliteWorkSession(SqliteConnection db) : IWorkSession
 {
+    public IReportRepository Reports { get; } = new SqliteReportRepository(db);
     public ISensorRepository Sensors { get; } = new SqliteSensorRepository(db);
     public IReadingRepository Readings { get; } = new SqliteReadingRepository(db);
     public IAlertRepository Alerts { get; } = new SqliteAlertRepository(db);

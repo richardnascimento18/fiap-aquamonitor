@@ -1,3 +1,4 @@
+using AquaMonitor.Application.Reports;
 using AquaMonitor.Application.Alerts;
 using AquaMonitor.Application.Readings;
 using AquaMonitor.Application.Abstractions;
@@ -95,6 +96,7 @@ builder.Services.AddScoped<SensorService>();
 
 // ── Application Services ──────────────────────────────────
 builder.Services.AddScoped<ReadingService>();
+builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<AlertService>();
 
 // ── Controllers ───────────────────────────────────────────
