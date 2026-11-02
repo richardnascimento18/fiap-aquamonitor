@@ -1,3 +1,4 @@
+using AquaMonitor.Application.Alerts;
 using AquaMonitor.Application.Readings;
 using AquaMonitor.Application.Abstractions;
 using AquaMonitor.Application.Sensors;
@@ -94,6 +95,7 @@ builder.Services.AddScoped<SensorService>();
 
 // ── Application Services ──────────────────────────────────
 builder.Services.AddScoped<ReadingService>();
+builder.Services.AddScoped<AlertService>();
 
 // ── Controllers ───────────────────────────────────────────
 builder.Services.AddControllers(o => o.Filters.Add<GlobalExceptionFilter>())
