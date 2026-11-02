@@ -27,7 +27,7 @@ public sealed class ReadingService(IWorkSessionFactory sessions, TimeProvider ti
         {
             var sensor = session.Sensors.FindState(request.SensorId) ?? throw new ApplicationFailure(404, "Sensor nao encontrado.");
             actor.RequireOwnership(sensor.UserId);
-            var anomaly = ReadingRules.Classify(sensor.Id, sensor.IsActive, request.LitersConsumed, request.FlowRateLitersPerHour, sensor.AlertThresholdLitersPerHour);
+            var anomaly = sensor.ClassifyReading(request.LitersConsumed, request.FlowRateLitersPerHour);
             var now = time.GetUtcNow().UtcDateTime;
             var recordedAt = request.RecordedAt ?? now;
             var id = session.Readings.Insert(request, recordedAt, anomaly);

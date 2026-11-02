@@ -125,3 +125,24 @@ public class DomainRulesTests
     public void InvalidPeriods_AreRejected(int year, int month)
         => Assert.Throws<DomainRuleException>(() => new ReportingPeriod(year, month));
 }
+
+public class SensorEntityTests
+{
+    [Theory]
+    [InlineData(0, 1, 500)]
+    [InlineData(1, 0, 500)]
+    [InlineData(1, 1, 0)]
+    [InlineData(1, 1, double.NaN)]
+    public void SensorState_EnforcesItsIdentityOwnershipAndThreshold(int id, int owner, double threshold)
+        => Assert.Throws<DomainRuleException>(() => new AquaMonitor.Domain.Entities.WaterSensor(id, "Test", "Room", threshold, true, DateTime.UnixEpoch, owner));
+
+    [Fact]
+    public void SensorState_ClassifiesUsingItsOwnActivationAndThreshold()
+    {
+        var sensor = new AquaMonitor.Domain.Entities.WaterSensor(1, "Test", "Room", 500, true, DateTime.UnixEpoch, 1);
+        Assert.False(sensor.ClassifyReading(0, 500));
+        Assert.True(sensor.ClassifyReading(0, double.BitIncrement(500)));
+        var inactive = new AquaMonitor.Domain.Entities.WaterSensor(1, "Test", "Room", 500, false, DateTime.UnixEpoch, 1);
+        Assert.Throws<DomainRuleException>(() => inactive.ClassifyReading(0, 1000));
+    }
+}

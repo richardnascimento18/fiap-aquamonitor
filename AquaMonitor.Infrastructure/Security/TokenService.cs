@@ -1,7 +1,7 @@
-using AquaMonitor.Application.Abstractions;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AquaMonitor.Application.Abstractions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AquaMonitor.Infrastructure.Security;

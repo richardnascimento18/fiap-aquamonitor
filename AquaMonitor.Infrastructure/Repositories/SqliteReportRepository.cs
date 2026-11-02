@@ -42,7 +42,7 @@ internal sealed class SqliteReportRepository(SqliteConnection db) : IReportRepos
 
         return new PagedResultVM<ReportResponseVM>
         { Data = rows.Select(MapReport).ToArray(), Page = page, PageSize = pageSize, TotalCount = total };
-    
+
     }
     public ReportResponseVM? Find(Actor actor, int id)
     {
@@ -51,7 +51,7 @@ internal sealed class SqliteReportRepository(SqliteConnection db) : IReportRepos
             new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = actor.UserId });
         if (rows.Count == 0) return null;
         return MapReport(rows[0]);
-    
+
     }
     public ReportTotals Totals(ReportingPeriod period)
     {
@@ -70,13 +70,19 @@ internal sealed class SqliteReportRepository(SqliteConnection db) : IReportRepos
                ReductionPercent,MitigationPlan,GeneratedAt,GeneratedByUserId)
             VALUES (@t,@yr,@mo,@tc,@sw,@ld,@lr,@rp,@mp,@ga,@uid)
             """, new Dictionary<string, object?>
-            {
-                ["@t"] = title, ["@yr"] = request.Year, ["@mo"] = request.Month,
-                ["@tc"] = impact.TotalConsumptionM3, ["@sw"] = impact.SavedWaterM3,
-                ["@ld"] = totals.LeaksDetected, ["@lr"] = totals.LeaksResolved,
-                ["@rp"] = impact.ReductionPercent, ["@mp"] = request.MitigationPlan,
-                ["@ga"] = utcNow.ToString("o"), ["@uid"] = actor.UserId
-            });
+        {
+            ["@t"] = title,
+            ["@yr"] = request.Year,
+            ["@mo"] = request.Month,
+            ["@tc"] = impact.TotalConsumptionM3,
+            ["@sw"] = impact.SavedWaterM3,
+            ["@ld"] = totals.LeaksDetected,
+            ["@lr"] = totals.LeaksResolved,
+            ["@rp"] = impact.ReductionPercent,
+            ["@mp"] = request.MitigationPlan,
+            ["@ga"] = utcNow.ToString("o"),
+            ["@uid"] = actor.UserId
+        });
         return (int)db.LastInsertRowId();
     }
     public void Delete(int id) => db.Execute("DELETE FROM WaterImpactReports WHERE Id=@id", new Dictionary<string, object?> { ["@id"] = id });

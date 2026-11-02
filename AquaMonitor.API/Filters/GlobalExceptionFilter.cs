@@ -1,5 +1,5 @@
-using AquaMonitor.Application.Abstractions;
 using System.ComponentModel.DataAnnotations;
+using AquaMonitor.Application.Abstractions;
 using AquaMonitor.Domain.Rules;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

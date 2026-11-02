@@ -47,7 +47,7 @@ internal sealed class SqliteAlertRepository(SqliteConnection db) : IAlertReposit
 
         return new PagedResultVM<AlertResponseVM>
         { Data = rows.Select(MapAlert).ToArray(), Page = filter.Page, PageSize = filter.PageSize, TotalCount = total };
-    
+
     }
     public AlertResponseVM? Find(Actor actor, int id)
     {
@@ -56,7 +56,7 @@ internal sealed class SqliteAlertRepository(SqliteConnection db) : IAlertReposit
             new Dictionary<string, object?> { ["@id"] = id, ["@uid"] = actor.UserId });
         if (rows.Count == 0) return null;
         return MapAlert(rows[0]);
-    
+
     }
     public int? FindStatus(Actor actor, int id)
     {
@@ -77,7 +77,7 @@ internal sealed class SqliteAlertRepository(SqliteConnection db) : IAlertReposit
         var bySeverity = db.Query("SELECT Severity, COUNT(*) cnt FROM LeakAlerts GROUP BY Severity")
             .Select(r => new SeverityCount(SevLabel((int)(long)r["Severity"]!), (long)r["cnt"]!));
         return new AlertStatistics(total, open, ack, resolved, bySeverity.ToArray());
-    
+
     }
     private static string SevLabel(int s) => s switch { 4 => "Critical", 3 => "High", 2 => "Medium", _ => "Low" };
     public int Insert(int sensorId, string message, int severity, double flow, DateTime utcNow)

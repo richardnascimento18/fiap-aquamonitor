@@ -48,8 +48,8 @@ internal sealed class SqliteSensorRepository(SqliteConnection db) : ISensorRepos
         var rows = db.Query("SELECT * FROM WaterSensors WHERE Id=@id", new Dictionary<string, object?> { ["@id"] = id });
         if (rows.Count == 0) return null;
         var r = rows[0];
-        return new WaterSensor { Id = id, UserId = (int)(long)r["UserId"]!, Name = (string)r["Name"]!, Location = (string)r["Location"]!,
-            AlertThresholdLitersPerHour = (double)r["AlertThresholdLitersPerHour"]!, IsActive = (long)r["IsActive"]! == 1, InstalledAt = DbValues.Timestamp(r["InstalledAt"]) };
+        return new WaterSensor(id, (string)r["Name"]!, (string)r["Location"]!, (double)r["AlertThresholdLitersPerHour"]!,
+            (long)r["IsActive"]! == 1, DbValues.Timestamp(r["InstalledAt"]), (int)(long)r["UserId"]!);
     }
     public int Insert(Actor actor, CreateSensorVM request, DateTime utcNow)
     {

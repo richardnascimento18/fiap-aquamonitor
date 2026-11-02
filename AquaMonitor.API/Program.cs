@@ -1,11 +1,11 @@
-using AquaMonitor.Application.Authentication;
-using AquaMonitor.Application.Reports;
-using AquaMonitor.Application.Alerts;
-using AquaMonitor.Application.Readings;
-using AquaMonitor.Application.Abstractions;
-using AquaMonitor.Application.Sensors;
 using System.Security.Claims;
 using AquaMonitor.API.Filters;
+using AquaMonitor.Application.Abstractions;
+using AquaMonitor.Application.Alerts;
+using AquaMonitor.Application.Authentication;
+using AquaMonitor.Application.Readings;
+using AquaMonitor.Application.Reports;
+using AquaMonitor.Application.Sensors;
 using AquaMonitor.Infrastructure.Persistence;
 using AquaMonitor.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

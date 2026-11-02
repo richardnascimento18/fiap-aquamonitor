@@ -1,5 +1,5 @@
-using AquaMonitor.Application.Contracts;
 using AquaMonitor.Application.Authentication;
+using AquaMonitor.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AquaMonitor.API.Controllers;

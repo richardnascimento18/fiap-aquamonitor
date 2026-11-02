@@ -1,6 +1,6 @@
 using AquaMonitor.API.Authentication;
-using AquaMonitor.Application.Sensors;
 using AquaMonitor.Application.Contracts;
+using AquaMonitor.Application.Sensors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

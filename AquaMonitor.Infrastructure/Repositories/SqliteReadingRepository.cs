@@ -45,7 +45,7 @@ internal sealed class SqliteReadingRepository(SqliteConnection db) : IReadingRep
             PageSize = filter.PageSize,
             TotalCount = total
         };
-    
+
     }
     public IEnumerable<ConsumptionSummaryVM> Summary(Actor actor, DateTime? from, DateTime? to, int? sensorId)
     {
@@ -80,7 +80,7 @@ internal sealed class SqliteReadingRepository(SqliteConnection db) : IReadingRep
             PeriodStart = r["PeriodStart"] is long ps ? new DateTime(ps, DateTimeKind.Utc) : null,
             PeriodEnd = r["PeriodEnd"] is long pe ? new DateTime(pe, DateTimeKind.Utc) : null
         }).ToArray();
-    
+
     }
     public int Insert(CreateReadingVM request, DateTime recordedAt, bool anomaly)
     {
