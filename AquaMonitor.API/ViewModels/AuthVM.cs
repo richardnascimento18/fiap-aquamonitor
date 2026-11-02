@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 namespace AquaMonitor.API.ViewModels;
+
 public class LoginVM
 {
     [Required(ErrorMessage = "E-mail e obrigatorio.")]

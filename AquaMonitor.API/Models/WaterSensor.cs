@@ -1,4 +1,5 @@
 namespace AquaMonitor.API.Models;
+
 public class WaterSensor
 {
     public int Id { get; set; }

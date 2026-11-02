@@ -1,4 +1,5 @@
 namespace AquaMonitor.API.Models;
+
 public class LeakAlert
 {
     public int Id { get; set; }

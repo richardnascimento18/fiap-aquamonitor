@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **ASP.NET Core 8**, com controllers e DTOs, endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
+O **AquaMonitor** é um sistema de monitoramento inteligente do consumo de água desenvolvido em **ASP.NET Core 10**, com controllers e DTOs, endpoints RESTful, autenticação JWT, paginação, validação avançada e detecção automática de vazamentos.
 
 O sistema permite que empresas e instituições registrem sensores de medição hídrica, coletem leituras de consumo em tempo real, recebam alertas automáticos quando a vazão ultrapassa limites configurados e gerem relatórios de impacto ambiental com planos de mitigação.
 
@@ -12,7 +12,7 @@ O sistema permite que empresas e instituições registrem sensores de medição 
 
 | Ferramenta | Versão mínima |
 |---|---|
-| .NET SDK | 8.0.427 (conforme `global.json`) |
+| .NET SDK | 10.0.403 (conforme `global.json`) |
 | Docker (opcional) | 20.x |
 
 > As dependências de autenticação, SQLite e testes são restauradas pelo NuGet. O driver `Microsoft.Data.Sqlite` inclui a biblioteca nativa SQLite para as plataformas suportadas.

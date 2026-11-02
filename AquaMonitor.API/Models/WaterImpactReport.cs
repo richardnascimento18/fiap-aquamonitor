@@ -1,4 +1,5 @@
 namespace AquaMonitor.API.Models;
+
 public class WaterImpactReport
 {
     public int Id { get; set; }
