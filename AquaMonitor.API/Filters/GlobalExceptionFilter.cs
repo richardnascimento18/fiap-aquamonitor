@@ -1,3 +1,4 @@
+using AquaMonitor.Domain.Rules;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.Sqlite;
@@ -9,6 +10,12 @@ public class GlobalExceptionFilter : IExceptionFilter
     public GlobalExceptionFilter(ILogger<GlobalExceptionFilter> logger) => _logger = logger;
     public void OnException(ExceptionContext context)
     {
+        if (context.Exception is DomainRuleException domain)
+        {
+            context.Result = new BadRequestObjectResult(new { message = domain.Message });
+            context.ExceptionHandled = true;
+            return;
+        }
         _logger.LogError(context.Exception, "Unhandled exception: {Message}", context.Exception.Message);
         var status = context.Exception is SqliteException { SqliteErrorCode: 19, SqliteExtendedErrorCode: 787 or 2067 or 1555 }
             ? StatusCodes.Status409Conflict : StatusCodes.Status500InternalServerError;

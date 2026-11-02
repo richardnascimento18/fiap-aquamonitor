@@ -1,4 +1,5 @@
 using AquaMonitor.Domain.Entities;
+using AquaMonitor.Domain.Rules;
 using AquaMonitor.Infrastructure.Persistence;
 
 namespace AquaMonitor.Infrastructure.Security;
@@ -14,8 +15,8 @@ public sealed class AlertService : IAlertService
     {
         if (flowRate <= threshold) return null;
 
-        var severity = DetermineSeverity(flowRate, threshold);
-        var message = $"[{SeverityLabel(severity)}] Sensor '{sensorName}' em '{location}' registrou vazao de {flowRate:F1} L/h — limite: {threshold:F1} L/h. Possivel vazamento detectado em {DateTime.UtcNow:dd/MM/yyyy HH:mm} UTC.";
+        var severity = (int)AlertRules.Severity(flowRate, threshold);
+        var message = AlertRules.Message(flowRate, threshold, sensorName, location, DateTime.UtcNow);
 
         db.Execute(
             "INSERT INTO LeakAlerts (SensorId, Message, Severity, Status, TriggerFlowRate, CreatedAt) VALUES (@sid,@msg,@sev,0,@tfr,@ca)",
@@ -32,11 +33,4 @@ public sealed class AlertService : IAlertService
         return id;
     }
 
-    private static int DetermineSeverity(double flowRate, double threshold)
-    {
-        var ratio = flowRate / threshold;
-        return ratio switch { >= 3.0 => 4, >= 2.0 => 3, >= 1.5 => 2, _ => 1 };
-    }
-
-    private static string SeverityLabel(int s) => s switch { 4 => "CRITICAL", 3 => "HIGH", 2 => "MEDIUM", _ => "LOW" };
 }

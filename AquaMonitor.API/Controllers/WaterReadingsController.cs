@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AquaMonitor.Application.Contracts;
+using AquaMonitor.Domain.Rules;
 using AquaMonitor.Infrastructure.Persistence;
 using AquaMonitor.Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -90,7 +91,7 @@ public class WaterReadingsController : ControllerBase
             if ((long)s["IsActive"]! == 0) return BadRequest(new { message = "Sensor inativo." });
 
             var threshold = (double)s["AlertThresholdLitersPerHour"]!;
-            var isAnomaly = vm.FlowRateLitersPerHour > threshold;
+            var isAnomaly = ReadingRules.Classify(vm.SensorId, true, vm.LitersConsumed, vm.FlowRateLitersPerHour, threshold);
             var recordedAt = (vm.RecordedAt ?? DateTime.UtcNow).ToString("o");
 
             db.Execute("INSERT INTO WaterReadings (SensorId,LitersConsumed,FlowRateLitersPerHour,RecordedAt,IsAnomaly) VALUES (@sid,@lc,@fr,@ra,@ia)",

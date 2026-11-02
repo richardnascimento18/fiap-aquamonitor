@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AquaMonitor.Application.Contracts;
+using AquaMonitor.Domain.Rules;
 using AquaMonitor.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -96,11 +97,7 @@ public class WaterImpactReportsController : ControllerBase
         var prevLiters = db.Query("SELECT COALESCE(SUM(LitersConsumed),0.0) v FROM WaterReadings WHERE RecordedAt>=@ps AND RecordedAt<@s", p);
         var pl = Convert.ToDouble(prevLiters[0]["v"] ?? 0.0);
 
-        var saved = pl - tl;
-        var reduction = pl > 0 ? Math.Round(saved / pl * 100, 2) : 0;
-
-        if (!double.IsFinite(tl) || !double.IsFinite(pl) || !double.IsFinite(saved) || !double.IsFinite(reduction))
-            return BadRequest(new { message = "Consumo fora do intervalo suportado para calculo." });
+        var impact = ImpactCalculation.Calculate(tl, pl);
 
         var leaksDetected = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE CreatedAt>=@s AND CreatedAt<=@e", p)[0]["c"]!;
         var leaksResolved = (long)db.Query("SELECT COUNT(*) c FROM LeakAlerts WHERE ResolvedAt>=@s AND ResolvedAt<=@e", p)[0]["c"]!;
@@ -121,11 +118,11 @@ public class WaterImpactReportsController : ControllerBase
                 ["@t"] = title,
                 ["@yr"] = vm.Year,
                 ["@mo"] = vm.Month,
-                ["@tc"] = Math.Round(tl / 1000, 3),
-                ["@sw"] = Math.Round(saved / 1000, 3),
+                ["@tc"] = impact.TotalConsumptionM3,
+                ["@sw"] = impact.SavedWaterM3,
                 ["@ld"] = leaksDetected,
                 ["@lr"] = leaksResolved,
-                ["@rp"] = reduction,
+                ["@rp"] = impact.ReductionPercent,
                 ["@mp"] = vm.MitigationPlan,
                 ["@ga"] = now,
                 ["@uid"] = UserId
